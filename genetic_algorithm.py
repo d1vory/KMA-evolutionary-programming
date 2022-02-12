@@ -1,35 +1,61 @@
 import logging
-import math
-import random
 import typing
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 import generators
+import models
 
 
-def convergence(population: typing.List[str]):
-    return len(set(population)) == 1
+def convergence(population: models.Population) -> bool:
+    return len(set(
+        [individual.genotype for individual in population.individuals]
+    )) == 1
 
 
 class GeneticAlgorithm:
     def __init__(
             self, *,
             generator: generators.BaseGenerator,
-            fitness_function: typing.Callable,
+            fitness_function: typing.Callable[
+                [typing.Union[str, typing.List[str]]],
+                typing.Union[float, typing.List[float]]
+            ],
+            scale_function: typing.Callable[
+                [typing.Union[float, typing.List[float]]],
+                typing.Union[float, typing.List[float]]
+            ],
+            selection_algo: typing.Callable[
+                [models.Population], models.Population
+            ],
             max_iteration: int = 10_000_000,
+            draw_step: typing.Union[None, int] = None,
+            draw_total_steps: bool = False,
     ):
         self._generator: generators.BaseGenerator = generator
 
-        self._fitness_function = fitness_function
+        self._fitness_function: typing.Callable[
+            [typing.Union[str, typing.List[str]]],
+            typing.Union[float, typing.List[float]]
+        ] = fitness_function
+        self._scale_function: typing.Callable[
+            [typing.Union[float, typing.List[float]]],
+            typing.Union[float, typing.List[float]]
+        ] = scale_function
+        self._selection_algo: typing.Callable[
+            [models.Population], models.Population
+        ] = selection_algo
 
         self._max_iteration: int = max_iteration
+        self._draw_step: int = draw_step
+        self._draw_total_steps = draw_total_steps
         self._iteration: int = 0
 
-        self._populations: typing.List[typing.List[str]] = []
-        self._scores: typing.List[int] = []
+        self._populations: typing.List[models.Population] = []
+        self._total_scores: typing.List[float] = []
 
-        self._population: typing.List[str] = self._generator.generate_population()
+        self._population: models.Population = self._evaluate_population(self._generator.generate_population())
 
     @property
     def generator(self) -> generators.BaseGenerator:
@@ -44,25 +70,48 @@ class GeneticAlgorithm:
         return self._iteration
 
     @property
-    def populations(self) -> typing.List[typing.List[str]]:
+    def populations(self) -> typing.List[models.Population]:
         return self._populations
 
     @property
-    def scores(self) -> typing.List[int]:
-        return self._scores
+    def total_scores(self) -> typing.List[float]:
+        return self._total_scores
 
     @property
-    def population(self) -> typing.List[str]:
+    def population(self) -> models.Population:
         return self._population
 
     @property
     def fitness_function(self) -> typing.Callable:
         return self._fitness_function
 
+    def _evaluate_population(self, population: typing.List[str]) -> models.Population:
+        individuals = []
+
+        for individual in population:
+            fitness = self._fitness_function(individual)
+            rank = self._scale_function(fitness)
+            individuals.append(models.Individual(individual, fitness, rank))
+
+        return models.Population(individuals)
+
     def fit(self):
         logging.info("Starting fitting")
 
         while True:
+            total_score: float = self._population.score()
+
+            msg = f"Iteration #{self._iteration}. Total score: {total_score}"
+            logging.info(msg)
+
+            if self._draw_step and self._iteration % self._draw_step == 0:
+                self._draw_scores([
+                    individual.fitness for individual in self._population.individuals
+                ], msg)
+
+            self._populations.append(self._population)
+            self._total_scores.append(total_score)
+
             if self._iteration == self._max_iteration:
                 logging.info(f"Max iteration exceeded, iterations - {self._iteration}")
                 break
@@ -71,45 +120,32 @@ class GeneticAlgorithm:
                 logging.info(f"Convergence of the population, iterations - {self._iteration}")
                 break
 
-            scores: typing.List[int] = self._fitness_function(self._population)
-            total_score: int = sum(scores)
-
-            msg = f"Iteration #{self._iteration}. Total score: {total_score}"
-            logging.info(msg)
-            self._draw_scores(scores, msg)
-
-            self._populations.append(self._population)
-            self._scores.append(total_score)
-            self._population = self._generate_next_population(
-                self._population, scores
-            )
+            self._population = self._selection_algo(self._population)
 
             self._iteration += 1
 
-        logging.info(f"Finished fitting after {self._iteration} iterations.")
+        msg = f"Finished at Iteration #{self._iteration}. Total score: {total_score}"
+        logging.info(msg)
+
+        if self._draw_total_steps:
+            self._draw_total_scores(self._total_scores, "Total score difference")
 
     @staticmethod
-    def _generate_next_population(population, scores) -> typing.List[str]:
-        beta = 1.2
-        n = len(population)
+    def _generate_next_population(population: models.Population) -> models.Population:
 
-        new_population = []
-
-        for individual, score in zip(population, scores):
-            p = (2 - beta) / n + (2 * score * (beta - 1)) / (n * (n - 1))
-
-            lower_bound = math.floor(p * n)
-            upper_bound = math.ceil(p * n)
-            msg = f"Individual - {individual}\nScore - {score}\nRank - {p}\nSelected [{lower_bound}, {upper_bound}]"
-            # print(msg)
-
-            new_population.extend(random.randint(lower_bound, upper_bound) * [individual])
-
-        print(len(population))
-        return new_population
+        return population
 
     @staticmethod
-    def _draw_scores(scores: typing.List[int], title: str):
+    def _draw_total_scores(scores: typing.List[float], title: str):
+        x = np.arange(0., len(scores), 1.)
+        plt.plot(x, scores, color="b")
+        plt.xlabel("Iterations")
+        plt.xlabel("Total score")
+        plt.title(title)
+        plt.show()
+
+    @staticmethod
+    def _draw_scores(scores: typing.List[float], title: str):
         plt.hist(scores, bins=25, color="b")
         plt.xlabel("Scores")
         plt.ylabel("Number of Individuals")

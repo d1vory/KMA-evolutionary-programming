@@ -2,9 +2,9 @@ import re
 import typing
 
 
-def fh(value: typing.Union[str, typing.List[str]]) -> typing.Union[int, typing.List[int]]:
-    def f(x: str) -> int:
-        return len(re.findall("0", x))
+def fh(value: typing.Union[str, typing.List[str]]) -> typing.Union[float, typing.List[float]]:
+    def f(x: str) -> float:
+        return float(len(re.findall("0", x)))
 
     if isinstance(value, str):
         return f(value)
