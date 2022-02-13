@@ -99,7 +99,7 @@ class GeneticAlgorithm:
         logging.info("Starting fitting")
 
         while True:
-            total_score: float = self._population.score()
+            total_score: float = self._population.score
 
             msg = f"Iteration #{self._iteration}. Total score: {total_score}"
             logging.info(msg)

@@ -18,3 +18,6 @@ class Individual:
 
     def __repr__(self):
         return f"Individual(genotype='{self._genotype}', fitness={self._fitness:.2f}, rank={self._rank}:.2f)"
+
+    def __eq__(self, other) -> bool:
+        return self._genotype == other.genotype
