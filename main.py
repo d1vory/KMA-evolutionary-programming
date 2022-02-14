@@ -1,4 +1,5 @@
 # TODO:
+# -1. Function refactoring, command line args, report generation
 # 0. comments
 # 1. Logging
 import logging
@@ -8,6 +9,15 @@ import generators
 import genetic_algorithm
 import scale_functions
 import selection_algorithms
+
+
+def evaluate_stats(stats: dict):
+    print("\n\n\n====GA STATS====\n")
+    for key, value in stats.items():
+        if isinstance(value, float):
+            value = f"{value:.3f}"
+        print(f"{key}={value}")
+    print("================")
 
 
 def main():
@@ -25,6 +35,8 @@ def main():
         draw_total_steps=True,
     )
     algo.fit()
+
+    evaluate_stats(algo.stats)
 
 
 if __name__ == "__main__":

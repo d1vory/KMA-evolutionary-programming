@@ -57,6 +57,14 @@ class GeneticAlgorithm:
 
         self._population: models.Population = self._evaluate_population(self._generator.generate_population())
 
+        self._stats: typing.Dict[str, float] = {}
+        self._selection_differences: typing.List[float] = []
+        self._reproduction_coeffs: typing.List[float] = []
+        self._loss_of_diversity_coeffs: typing.List[float] = []
+        self._selection_intensities: typing.List[float] = []
+        self._growth_rates: typing.List[float] = []
+        self._convergence_iteration: typing.Union[None, float] = None
+
     @property
     def generator(self) -> generators.BaseGenerator:
         return self._generator
@@ -82,8 +90,90 @@ class GeneticAlgorithm:
         return self._population
 
     @property
-    def fitness_function(self) -> typing.Callable:
-        return self._fitness_function
+    def stats(self) -> typing.Dict[str, float]:
+        return self._stats
+
+    def _update_stats(self):
+        previous_population: models.Population = self._populations[len(self._populations) - 2]
+        current_population: models.Population = self._populations[len(self._populations) - 1]
+
+        selection_difference = current_population.avg_score - previous_population.avg_score
+        self._selection_differences.append(selection_difference)
+
+        if "s_min" not in self._stats or selection_difference < self._stats["s_min"]:
+            self._stats["s_min"] = selection_difference
+            self._stats["NI_s_min"] = self._iteration
+        if "s_max" not in self._stats or selection_difference > self._stats["s_max"]:
+            self._stats["s_max"] = selection_difference
+            self._stats["NI_s_max"] = self._iteration
+
+        selection_intensity = selection_difference / np.std(previous_population.fitness_arr)
+        self._selection_intensities.append(selection_intensity)
+
+        if "I_min" not in self._stats or selection_intensity < self._stats["I_min"]:
+            self._stats["I_min"] = selection_intensity
+            self._stats["NI_I_min"] = self._iteration
+        if "I_max" not in self._stats or selection_intensity > self._stats["I_max"]:
+            self._stats["I_max"] = selection_intensity
+            self._stats["NI_I_max"] = self._iteration
+
+        in_parent_pool = 0
+        best = current_population.get_fittest(1)[0]
+        num_of_best = 0
+        best_in_previous = previous_population.get_fittest(1)[0]
+        num_of_best_in_previous = 0
+
+        for individual in previous_population.individuals:
+            if individual == best_in_previous:
+                num_of_best_in_previous += 1
+            if individual in current_population:
+                in_parent_pool += 1
+
+        for individual in current_population.individuals:
+            if individual == best:
+                num_of_best += 1
+                continue
+            break
+
+        growth_rate = 0
+        if num_of_best >= num_of_best_in_previous:
+            growth_rate = num_of_best / num_of_best_in_previous
+        self._growth_rates.append(growth_rate)
+
+        if self._iteration == 2:
+            self._stats["GR_early"] = growth_rate
+        if "GR_late" not in self._stats and num_of_best >= len(current_population.individuals) / 2:
+            self._stats["GR_late"] = growth_rate
+            self._stats["NI_GR_late"] = self._iteration
+
+        reproduction = in_parent_pool / len(previous_population.individuals)
+        loss_of_diversity = 1 - reproduction
+
+        self._reproduction_coeffs.append(reproduction)
+        self._loss_of_diversity_coeffs.append(loss_of_diversity)
+
+        if "RR_min" not in self._stats or reproduction < self._stats["RR_min"]:
+            self._stats["RR_min"] = reproduction
+            self._stats["NI_RR_min"] = self._iteration
+        if "RR_max" not in self._stats or reproduction > self._stats["RR_max"]:
+            self._stats["RR_max"] = reproduction
+            self._stats["NI_RR_max"] = self._iteration
+        if "Teta_min" not in self._stats or loss_of_diversity < self._stats["Teta_min"]:
+            self._stats["Teta_min"] = loss_of_diversity
+            self._stats["NI_Teta_min"] = self._iteration
+        if "Teta_max" not in self._stats or loss_of_diversity > self._stats["Teta_max"]:
+            self._stats["Teta_max"] = loss_of_diversity
+            self._stats["NI_Teta_max"] = self._iteration
+
+    def _update_final_stats(self):
+        self._stats["s_avg"] = np.mean(self._selection_differences)
+        self._stats["RR_avg"] = np.mean(self._reproduction_coeffs)
+        self._stats["Teta_avg"] = np.mean(self._loss_of_diversity_coeffs)
+        self._stats["F_avg"] = self._population.avg_score
+        self._stats["F_found"] = self._population.get_fittest(1)[0].fitness
+        self._stats["I_avg"] = np.mean(self._selection_intensities)
+        self._stats["GR_avg"] = np.mean(self._growth_rates)
+        self._stats["NI"] = self._convergence_iteration or -1
 
     def _evaluate_population(self, population: typing.List[str]) -> models.Population:
         individuals = []
@@ -112,11 +202,15 @@ class GeneticAlgorithm:
             self._populations.append(self._population)
             self._total_scores.append(total_score)
 
+            if self._iteration > 0:
+                self._update_stats()
+
             if self._iteration == self._max_iteration:
                 logging.info(f"Max iteration exceeded, iterations - {self._iteration}")
                 break
 
             if convergence(self._population):
+                self._convergence_iteration = self.iteration
                 logging.info(f"Convergence of the population, iterations - {self._iteration}")
                 break
 
@@ -127,13 +221,10 @@ class GeneticAlgorithm:
         msg = f"Finished at Iteration #{self._iteration}. Total score: {total_score}"
         logging.info(msg)
 
+        self._update_final_stats()
+
         if self._draw_total_steps:
             self._draw_total_scores(self._total_scores, "Total score difference")
-
-    @staticmethod
-    def _generate_next_population(population: models.Population) -> models.Population:
-
-        return population
 
     @staticmethod
     def _draw_total_scores(scores: typing.List[float], title: str):
