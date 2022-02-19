@@ -31,7 +31,7 @@ def main():
         scale_function=scale_functions.linear_rank(beta, n),
         selection_algo=selection_algorithms.sus,
         max_iteration=1000,
-        draw_step=None,
+        draw_step=3,
         draw_total_steps=True,
     )
     algo.fit()

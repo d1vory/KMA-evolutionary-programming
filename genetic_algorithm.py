@@ -191,14 +191,6 @@ class GeneticAlgorithm:
         while True:
             total_score: float = self._population.score
 
-            msg = f"Iteration #{self._iteration}. Total score: {total_score}"
-            logging.info(msg)
-
-            if self._draw_step and self._iteration % self._draw_step == 0:
-                self._draw_scores([
-                    individual.fitness for individual in self._population.individuals
-                ], msg)
-
             self._populations.append(self._population)
             self._total_scores.append(total_score)
 
@@ -214,12 +206,24 @@ class GeneticAlgorithm:
                 logging.info(f"Convergence of the population, iterations - {self._iteration}")
                 break
 
+            msg = f"Iteration #{self._iteration}. Total score: {total_score}"
+            logging.info(msg)
+
+            if self._draw_step and self._iteration % self._draw_step == 0:
+                self._draw_scores([
+                    individual.fitness for individual in self._population.individuals
+                ], msg)
+
             self._population = self._selection_algo(self._population)
 
             self._iteration += 1
 
         msg = f"Finished at Iteration #{self._iteration}. Total score: {total_score}"
         logging.info(msg)
+
+        self._draw_scores([
+            individual.fitness for individual in self._population.individuals
+        ], msg)
 
         self._update_final_stats()
 
