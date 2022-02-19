@@ -1,18 +1,14 @@
-import typing
+import models
 
 
-def linear_rank(beta: float, n: int) -> typing.Callable[[float], float]:
-    def f(
-            value: typing.Union[float, typing.List[float]]
-    ) -> typing.Union[float, typing.List[float]]:
-        def f_helper(score: float) -> float:
-            return (2 - beta) / n + (2 * score * (beta - 1)) / (n * (n - 1))
+class LinearRank(models.Function):
+    def __init__(self, beta: float, n: int):
+        super().__init__()
 
-        if isinstance(value, float):
-            return f_helper(value)
-        elif isinstance(value, list):
-            return [f_helper(x) for x in value]
-        else:
-            raise NotImplementedError
+        self._beta = beta
+        self._n = n
 
-    return f
+    def _f(self, arg):
+        return (2 - self._beta) / self._n \
+               + (2 * arg * (self._beta - 1)) \
+               / (self._n * (self._n - 1))

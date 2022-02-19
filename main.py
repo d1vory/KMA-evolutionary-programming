@@ -1,5 +1,5 @@
 # TODO:
-# -1. Function refactoring, command line args, report generation
+# -1. command line args, report generation
 # 0. comments
 # 1. Logging
 import logging
@@ -27,8 +27,8 @@ def main():
     generator = generators.NormalGenerator(n=n, length=length, optimal=True)
     algo = genetic_algorithm.GeneticAlgorithm(
         generator=generator,
-        fitness_function=fitness_functions.fh,
-        scale_function=scale_functions.linear_rank(beta, n),
+        fitness_function=fitness_functions.FH(),
+        scale_function=scale_functions.LinearRank(beta, n),
         selection_algo=selection_algorithms.sus,
         max_iteration=1000,
         draw_step=3,

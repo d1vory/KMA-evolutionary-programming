@@ -18,14 +18,8 @@ class GeneticAlgorithm:
     def __init__(
             self, *,
             generator: generators.BaseGenerator,
-            fitness_function: typing.Callable[
-                [typing.Union[str, typing.List[str]]],
-                typing.Union[float, typing.List[float]]
-            ],
-            scale_function: typing.Callable[
-                [typing.Union[float, typing.List[float]]],
-                typing.Union[float, typing.List[float]]
-            ],
+            fitness_function: models.Function,
+            scale_function: models.Function,
             selection_algo: typing.Callable[
                 [models.Population], models.Population
             ],
@@ -35,14 +29,8 @@ class GeneticAlgorithm:
     ):
         self._generator: generators.BaseGenerator = generator
 
-        self._fitness_function: typing.Callable[
-            [typing.Union[str, typing.List[str]]],
-            typing.Union[float, typing.List[float]]
-        ] = fitness_function
-        self._scale_function: typing.Callable[
-            [typing.Union[float, typing.List[float]]],
-            typing.Union[float, typing.List[float]]
-        ] = scale_function
+        self._fitness_function: models.Function = fitness_function
+        self._scale_function: models.Function = scale_function
         self._selection_algo: typing.Callable[
             [models.Population], models.Population
         ] = selection_algo
