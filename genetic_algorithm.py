@@ -168,10 +168,19 @@ class GeneticAlgorithm:
 
         for individual in population:
             fitness = self._fitness_function(individual)
-            rank = self._scale_function(fitness)
-            individuals.append(models.Individual(individual, fitness, rank))
+            individuals.append(models.Individual(individual, fitness))
 
         return models.Population(individuals)
+
+    def _calculate_ranks(self, population: models.Population):
+        individuals: typing.List[models.Individual] = []
+
+        for index, individual in enumerate(population.individuals):
+            individuals.append(models.Individual(
+                individual.genotype, individual.fitness, self._scale_function(index)
+            ))
+
+        return models.Population(individuals, sort_on_init=False)
 
     def fit(self):
         logging.info("Starting fitting")
@@ -202,6 +211,7 @@ class GeneticAlgorithm:
                     individual.fitness for individual in self._population.individuals
                 ], msg)
 
+            self._population = self._calculate_ranks(self._population)
             self._population = self._selection_algo(self._population)
 
             self._iteration += 1

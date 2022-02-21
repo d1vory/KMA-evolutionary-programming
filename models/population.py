@@ -6,14 +6,18 @@ import models
 
 
 class Population:
-    def __init__(self, individuals: typing.List[models.Individual]):
-        self._individuals: typing.List[models.Individual] = sorted(
-            individuals, key=lambda x: x.fitness, reverse=True
-        )
+    def __init__(self, individuals: typing.List[models.Individual], sort_on_init: bool = True):
+        self._individuals: typing.List[models.Individual] = individuals
+
         self._score: typing.Union[float, None] = None
         self._avg_score: typing.Union[float, None] = None
         self._std_score: typing.Union[float, None] = None
         self._fitness_arr: typing.Union[typing.List[float], None] = None
+
+        if sort_on_init:
+            self._individuals: typing.List[models.Individual] = sorted(
+                self._individuals, key=lambda x: x.fitness
+            )
 
     @property
     def individuals(self) -> typing.List[models.Individual]:
@@ -48,7 +52,7 @@ class Population:
         return self._fitness_arr
 
     def get_fittest(self, n: int) -> typing.List[models.Individual]:
-        return self._individuals[:n]
+        return self._individuals[-n:]
 
     def count(self, individual: models.Individual) -> int:
         counter = 0
@@ -67,3 +71,6 @@ class Population:
 
     def __eq__(self, other) -> bool:
         return self._individuals == other.individuals
+
+    def __len__(self) -> int:
+        return len(self._individuals)
