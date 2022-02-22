@@ -4,7 +4,6 @@ import typing
 import matplotlib.pyplot as plt
 import numpy as np
 
-import generators
 import models
 
 
@@ -17,7 +16,7 @@ def convergence(population: models.Population) -> bool:
 class GeneticAlgorithm:
     def __init__(
             self, *,
-            generator: generators.BaseGenerator,
+            base_population: typing.List[str],
             fitness_function: models.Function,
             scale_function: models.Function,
             selection_algo: typing.Callable[
@@ -27,7 +26,7 @@ class GeneticAlgorithm:
             draw_step: typing.Union[None, int] = None,
             draw_total_steps: bool = False,
     ):
-        self._generator: generators.BaseGenerator = generator
+        self._base_population: typing.List[str] = base_population
 
         self._fitness_function: models.Function = fitness_function
         self._scale_function: models.Function = scale_function
@@ -43,7 +42,7 @@ class GeneticAlgorithm:
         self._populations: typing.List[models.Population] = []
         self._total_scores: typing.List[float] = []
 
-        self._population: models.Population = self._evaluate_population(self._generator.generate_population())
+        self._population: models.Population = self._evaluate_population(self._base_population)
 
         self._stats: typing.Dict[str, float] = {}
         self._selection_differences: typing.List[float] = []
@@ -54,8 +53,8 @@ class GeneticAlgorithm:
         self._convergence_iteration: typing.Union[None, float] = None
 
     @property
-    def generator(self) -> generators.BaseGenerator:
-        return self._generator
+    def base_population(self) -> typing.List[str]:
+        return self._base_population
 
     @property
     def max_iteration(self) -> int:
@@ -219,9 +218,10 @@ class GeneticAlgorithm:
         msg = f"Finished at Iteration #{self._iteration}. Total score: {total_score}"
         logging.info(msg)
 
-        self._draw_scores([
-            individual.fitness for individual in self._population.individuals
-        ], msg)
+        if self._draw_step:
+            self._draw_scores([
+                individual.fitness for individual in self._population.individuals
+            ], msg)
 
         self._update_final_stats()
 
