@@ -3,6 +3,7 @@
 # 0. comments
 # 1. Logging
 # 2. Drawing
+import collections
 import logging
 
 import fitness_functions
@@ -12,26 +13,8 @@ import scale_functions
 import selection_algorithms
 import xlsx
 
-stats = {}
 
-
-def evaluate_stats(
-        epoch: int, n: int, beta: float, length: int, max_iteration: int, algo_stats: dict
-):
-    if epoch not in stats:
-        stats[epoch] = {}
-
-    stats[epoch][f"{n}_{beta}_{length}_{max_iteration}"] = algo_stats
-
-    # print("\n\n\n====GA STATS====\n")
-    # for key, value in stats.items():
-    #     if isinstance(value, float):
-    #         value = f"{value:.3f}"
-    #     print(f"{key}={value}")
-    # print("================")
-
-
-def generate_report(epochs: int, n: int, beta: float, length: int, max_iteration: int, writer: xlsx.XLSX):
+def generate_report(epochs: int, n: int, beta: float, length: int, max_iteration: int, writer: xlsx.XLSX, stats: dict):
     writer.text(f"Experiment (n={n}, beta={beta}, length={length}, max_iteration={max_iteration})", style="bold_bg")
     stats_id = f"{n}_{beta}_{length}_{max_iteration}"
 
@@ -59,6 +42,7 @@ def main():
     length = 100
     beta_vals = [1.2, 1.6, 2.0]
     max_iteration = 10_000_000
+    stats = collections.defaultdict(dict)
 
     for epoch in range(epochs):
         for n in n_vals:
@@ -77,13 +61,13 @@ def main():
                 )
                 algo.fit()
 
-                evaluate_stats(epoch, n, beta, length, max_iteration, algo.stats)
+                stats[epoch][f"{n}_{beta}_{length}_{max_iteration}"] = algo.stats
 
     w = xlsx.XLSX("report_1.xlsx", "Linear Rank (without mutations)")
 
     for n in n_vals:
         for beta in beta_vals:
-            generate_report(epochs, n, beta, length, max_iteration, w)
+            generate_report(epochs, n, beta, length, max_iteration, w, stats)
 
     w.save()
 
