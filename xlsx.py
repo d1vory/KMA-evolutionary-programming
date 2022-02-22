@@ -51,6 +51,12 @@ class XLSX:
             current_row: int = 1,
             current_col: int = 1
     ):
+        """
+        :param filename: Name of the file for saving (should end with .xls/.xlsx)
+        :param sheet_name: First sheet name
+        :param current_row: Starting row position
+        :param current_col: Starting column position
+        """
         self._filename = filename
         self._current_row = current_row
         self._current_col = current_col
@@ -59,8 +65,9 @@ class XLSX:
         self._sheets = {}
         self._workbook = openpyxl.Workbook()
 
-        if "Sheet" in self._workbook.sheetnames:
-            del self._workbook["Sheet"]
+        # deleting default sheets in workbook
+        for sheet in self._workbook.sheetnames:
+            del self._workbook[sheet]
 
         self._current_worksheet = None
 
@@ -81,6 +88,13 @@ class XLSX:
             self._workbook.add_named_style(style)
 
     def _log(self, mode: str, msg: str, variables: dict = None):
+        """
+        Class logging method
+        :param mode: mode
+        :param msg: msg
+        :param variables: dict of the variables that should be in log
+        :return: None
+        """
         if not variables:
             variables = {}
         variables["current_timestamp"] = datetime.datetime.now().isoformat()
@@ -140,10 +154,22 @@ class XLSX:
         )
 
     def skip(self, row: int = 0, col: int = 0):
+        """
+        Skipping positions in current sheet
+        :param row: num of rows to skip
+        :param col: num of columns to skip
+        :return: None
+        """
         self._current_row += row
         self._current_col += col
 
     def set_pos(self, row: int = None, col: int = None):
+        """
+        Set positions in current sheet
+        :param row: row number
+        :param col: column number
+        :return: None
+        """
         self._current_row = row if row is not None else self._current_row
         self._current_col = col if col is not None else self._current_col
 
@@ -151,6 +177,17 @@ class XLSX:
             self, title, row=None, col=None,
             override=True, increase_row=True, increase_col=False, style="normal"
     ):
+        """
+        Insert long text in a row
+        :param title: text
+        :param row: row number or None, if None current row increasing logic will be used
+        :param col: column number or None, if None current row increasing logic will be used
+        :param override: overwriting cell values
+        :param increase_row: increasing row after insert. If row was passed, this value is ignored
+        :param increase_col: increasing column after insert. If col was passed, this value is ignored
+        :param style: named style
+        :return: None
+        """
         increase_row = increase_row if row is None else False
         increase_col = increase_col if col is None else False
 
@@ -188,6 +225,17 @@ class XLSX:
             override=True, increase_row=True, increase_col=True,
             style="normal"
     ):
+        """
+        Insert new cell value to the current sheet
+        :param value: value of the cell
+        :param row: row number or None, if None current row increasing logic will be used
+        :param col: column number or None, if None current row increasing logic will be used
+        :param override: overwriting cell values
+        :param increase_row: increasing row after insert. If row was passed, this value is ignored
+        :param increase_col: increasing column after insert. If col was passed, this value is ignored
+        :param style: named style
+        :return: None
+        """
         increase_col = increase_col if col is None else False
         increase_row = increase_row if row is None else False
 
@@ -210,9 +258,20 @@ class XLSX:
             self._current_row += 1
 
     def row(
-            self, arr, col=None, row=None,
+            self, arr, row=None, col=None,
             override=True, increase_row=True, increase_col=False, style="normal"
     ):
+        """
+        Insert new row to the current sheet
+        :param arr: Iterable to insert as a row
+        :param row: row number or None, if None current row increasing logic will be used
+        :param col: column number or None, if None current row increasing logic will be used
+        :param override: overwriting cell values
+        :param increase_row: increasing row after insert. If row was passed, this value is ignored
+        :param increase_col: increasing column after insert. If col was passed, this value is ignored
+        :param style: named style
+        :return: None
+        """
         increase_col = increase_col if col is None else False
         increase_row = increase_row if row is None else False
 
@@ -231,9 +290,20 @@ class XLSX:
             self._current_col += len(arr)
 
     def col(
-            self, arr, col=None, row=None,
+            self, arr, row=None, col=None,
             override=True, increase_col=True, increase_row=False, style="normal"
     ):
+        """
+        Insert new column to the current sheet
+        :param arr: Iterable to insert as a column
+        :param row: row number or None, if None current row increasing logic will be used
+        :param col: column number or None, if None current row increasing logic will be used
+        :param override: overwriting cell values
+        :param increase_row: increasing row after insert. If row was passed, this value is ignored
+        :param increase_col: increasing column after insert. If col was passed, this value is ignored
+        :param style: named style
+        :return: None
+        """
         increase_col = increase_col if col is None else False
         increase_row = increase_row if row is None else False
 
