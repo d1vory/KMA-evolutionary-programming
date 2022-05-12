@@ -4,6 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import norm
 
+import models
+
+
+def convergence(population: models.Population) -> bool:
+    return len(set(
+        [individual.genotype for individual in population.individuals]
+    )) == 1
+
 
 def draw_population(p: typing.List[int], title: str):
     if not p:

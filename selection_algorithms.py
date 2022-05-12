@@ -10,14 +10,14 @@ def rws(
     keep = []
     for p in pointers:
         i = 0
-        while sum([individual.fitness for individual in population.individuals[:i + 1]]) < p:
+        while sum([individual.rank for individual in population.individuals[:i + 1]]) < p:
             i += 1
         keep.append(population.individuals[i])
     return models.Population(keep)
 
 
 def my_sus(population: models.Population) -> models.Population:
-    f = population.score  # sum of all probabilities = 1
+    f = population.rank  # sum of all probabilities = 1
     n = len(population)
     p = f / n
     start = random.uniform(0, p)

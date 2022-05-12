@@ -5,12 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import models
-
-
-def convergence(population: models.Population) -> bool:
-    return len(set(
-        [individual.genotype for individual in population.individuals]
-    )) == 1
+import utils
 
 
 class GeneticAlgorithm:
@@ -22,6 +17,7 @@ class GeneticAlgorithm:
             selection_algo: typing.Callable[
                 [models.Population], models.Population
             ],
+            modified_selection_algo: bool = False,
             max_iteration: int = 10_000_000,
             draw_step: typing.Union[None, int] = None,
             draw_total_steps: bool = False,
@@ -33,6 +29,7 @@ class GeneticAlgorithm:
         self._selection_algo: typing.Callable[
             [models.Population], models.Population
         ] = selection_algo
+        self._modified_selection_algo = modified_selection_algo
 
         self._max_iteration: int = max_iteration
         self._draw_step: int = draw_step
@@ -174,10 +171,37 @@ class GeneticAlgorithm:
     def _calculate_ranks(self, population: models.Population):
         individuals: typing.List[models.Individual] = []
 
-        for index, individual in enumerate(population.individuals):
-            individuals.append(models.Individual(
-                individual.genotype, individual.fitness, self._scale_function(index)
-            ))
+        i = 0
+        while i < len(population):
+            j = i + 1
+
+            if self._modified_selection_algo:
+                r = [i]
+                while j < len(population):
+                    if population.individuals[j] == population.individuals[i]:
+                        r.append(j)
+                    else:
+                        break
+
+                    j += 1
+
+                rank = np.mean(r)
+            else:
+                rank = i
+
+            while i < j:
+                individual = population.individuals[i]
+
+                individuals.append(models.Individual(
+                    individual.genotype, individual.fitness, self._scale_function(rank)
+                ))
+
+                i += 1
+
+        # for index, individual in enumerate(population.individuals):
+        #     individuals.append(models.Individual(
+        #         individual.genotype, individual.fitness, self._scale_function(index)
+        #     ))
 
         return models.Population(individuals, sort_on_init=False)
 
@@ -197,7 +221,7 @@ class GeneticAlgorithm:
                 logging.info(f"Max iteration exceeded, iterations - {self._iteration}")
                 break
 
-            if convergence(self._population):
+            if utils.convergence(self._population):
                 self._convergence_iteration = self.iteration
                 logging.info(f"Convergence of the population, iterations - {self._iteration}")
                 break

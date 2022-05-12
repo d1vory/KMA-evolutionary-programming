@@ -13,6 +13,7 @@ class Population:
         self._avg_score: typing.Union[float, None] = None
         self._std_score: typing.Union[float, None] = None
         self._fitness_arr: typing.Union[typing.List[float], None] = None
+        self._rank: typing.Union[float, None] = None
 
         if sort_on_init:
             self._individuals: typing.List[models.Individual] = sorted(
@@ -50,6 +51,13 @@ class Population:
             self._fitness_arr = [individual.fitness for individual in self._individuals]
 
         return self._fitness_arr
+
+    @property
+    def rank(self) -> float:
+        if self._rank is None:
+            self._rank = sum([individual.rank for individual in self._individuals])
+
+        return self._rank
 
     def get_fittest(self, n: int) -> typing.List[models.Individual]:
         return self._individuals[-n:]
