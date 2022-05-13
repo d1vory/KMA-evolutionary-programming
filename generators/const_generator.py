@@ -8,4 +8,4 @@ class ConstGenerator(base_generator.BaseGenerator):
         return self.generate_individual()
 
     def generate_individual(self) -> str:
-        return "0" * self._length if random.random() < 0.5 else "1" * self._length
+        return ("0" if random.random() < 0.5 else "1") * self._length

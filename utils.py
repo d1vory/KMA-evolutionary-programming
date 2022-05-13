@@ -7,6 +7,52 @@ from scipy.stats import norm
 import models
 
 
+def decode_sampling(a, b, x, m):
+    return a + x * ((b - a) / (2 ** m - 1))
+
+
+def get_bin(x, n=0):
+    """
+    Get the binary representation of x.
+
+    Parameters
+    ----------
+    x : int
+    n : int
+        Minimum number of digits. If x needs less digits in binary, the rest
+        is filled with zeros.
+
+    Returns
+    -------
+    str
+    """
+    return format(x, 'b').zfill(n)
+
+
+def get_dec(x):
+    return int(x, 2)
+
+
+def encode_gray(x):
+    return x ^ (x >> 1)
+
+
+def decode_gray(x):
+    mask = x
+
+    while mask:
+        mask >>= 1
+        x ^= mask
+
+    return x
+
+
+def decode(x, a, b, m):
+    x = get_dec(x)
+    x = decode_gray(x)
+    return decode_sampling(a, b, x, m)
+
+
 def convergence(population: models.Population) -> bool:
     return len(set(
         [individual.genotype for individual in population.individuals]

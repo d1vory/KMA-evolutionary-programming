@@ -18,6 +18,7 @@ class GeneticAlgorithm:
                 [models.Population], models.Population
             ],
             modified_selection_algo: bool = False,
+            stats_mode: str = "full",
             max_iteration: int = 10_000_000,
             draw_step: typing.Union[None, int] = None,
             draw_total_steps: bool = False,
@@ -31,6 +32,7 @@ class GeneticAlgorithm:
         ] = selection_algo
         self._modified_selection_algo = modified_selection_algo
 
+        self._stats_mode: str = stats_mode
         self._max_iteration: int = max_iteration
         self._draw_step: int = draw_step
         self._draw_total_steps = draw_total_steps
@@ -77,9 +79,16 @@ class GeneticAlgorithm:
     def stats(self) -> typing.Dict[str, float]:
         return self._stats
 
+    def _update_noise_stats(self):
+        self._stats["NI"] = self._convergence_iteration or -1
+        self._stats["ConvTo"] = 0 if self._population.individuals[0].is_zero() else 1
+
     def _update_stats(self):
-        previous_population: models.Population = self._populations[len(self._populations) - 2]
-        current_population: models.Population = self._populations[len(self._populations) - 1]
+        if self._stats_mode == "noise":
+            return
+
+        previous_population: models.Population = self._populations[-2]
+        current_population: models.Population = self._populations[-1]
 
         selection_difference = current_population.avg_score - previous_population.avg_score
         self._selection_differences.append(selection_difference)
@@ -150,6 +159,10 @@ class GeneticAlgorithm:
             self._stats["NI_Teta_max"] = self._iteration
 
     def _update_final_stats(self):
+        if self._stats_mode == "noise":
+            self._update_noise_stats()
+            return
+
         self._stats["s_avg"] = np.mean(self._selection_differences)
         self._stats["RR_avg"] = np.mean(self._reproduction_coeffs)
         self._stats["Teta_avg"] = np.mean(self._loss_of_diversity_coeffs)

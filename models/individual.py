@@ -26,6 +26,9 @@ class Individual:
     def rank(self, value: float):
         self._rank = value
 
+    def is_zero(self):
+        return list(set(self._genotype)) == ["0"]
+
     def __repr__(self):
         return f"Individual(genotype='{self._genotype}', fitness={self._fitness:.2f}, rank={self._rank}:.2f)"
 
