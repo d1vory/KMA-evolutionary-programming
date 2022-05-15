@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import norm
 
-import models
-
 
 def decode_sampling(a, b, x, m):
     return a + x * ((b - a) / (2 ** m - 1))
@@ -51,12 +49,6 @@ def decode(x, a, b, m):
     x = get_dec(x)
     x = decode_gray(x)
     return decode_sampling(a, b, x, m)
-
-
-def convergence(population: models.Population) -> bool:
-    return len(set(
-        [individual.genotype for individual in population.individuals]
-    )) == 1
 
 
 def draw_population(p: typing.List[int], title: str):

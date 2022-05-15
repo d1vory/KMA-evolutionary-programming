@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import models
-import utils
 
 
 class GeneticAlgorithm:
@@ -234,7 +233,7 @@ class GeneticAlgorithm:
                 logging.info(f"Max iteration exceeded, iterations - {self._iteration}")
                 break
 
-            if utils.convergence(self._population):
+            if self._population.convergence():
                 self._convergence_iteration = self.iteration
                 logging.info(f"Convergence of the population, iterations - {self._iteration}")
                 break

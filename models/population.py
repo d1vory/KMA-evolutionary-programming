@@ -71,6 +71,11 @@ class Population:
 
         return counter
 
+    def convergence(self) -> bool:
+        return len(set(
+            [individual.genotype for individual in self._individuals]
+        )) == 1
+
     def __repr__(self):
         return f"Population(individuals={len(self._individuals)}, total_score={self.score})"
 
