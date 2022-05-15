@@ -11,6 +11,7 @@ class Evaluator:
     def __init__(self, config: evaluator_config.EvaluatorConfig, cpu_count: int = None):
         self._config: evaluator_config.EvaluatorConfig = config
         self._writing_dir: pathlib.Path = pathlib.Path(f"./{self._config.writing_dir}/data")
+        self._graphics_dir: pathlib.Path = pathlib.Path(f"./{self._config.writing_dir}/graphics")
 
         self._writing_dir.mkdir(parents=True, exist_ok=True)
 
@@ -45,6 +46,10 @@ class Evaluator:
                     f"Fitting GA: epoch={epoch}, n={n}, fitness={fitness_fn.name}, "
                     f"linear(beta={selection_fn.beta}, modified={selection_fn.modified})"
                 )
+                selection_fn_name = f"{selection_fn.beta}${selection_fn.modified}"
+
+                graphics_dir = self._graphics_dir / fitness_fn.name / str(n) / selection_fn_name / str(epoch)
+                graphics_dir.mkdir(parents=True, exist_ok=True)
 
                 algo = genetic_algorithm.GeneticAlgorithm(
                     base_population=population,
@@ -58,10 +63,11 @@ class Evaluator:
                     early_stopping=fitness_fn.early_stopping,
                     draw_step=None,
                     draw_total_steps=False,
+                    graphics_dir=str(graphics_dir)
                 )
                 algo.fit()
 
-                run_data[f"{selection_fn.beta}${selection_fn.modified}"] = algo.stats
+                run_data[selection_fn_name] = algo.stats
 
             report_data.append(run_data)
 

@@ -1,3 +1,4 @@
+import collections
 import logging
 import math
 import random
@@ -6,6 +7,7 @@ import typing
 import matplotlib.pyplot as plt
 import numpy as np
 
+from core import utils
 import models
 
 
@@ -30,6 +32,7 @@ class GeneticAlgorithm:
             early_stopping: typing.Union[None, int] = None,
             draw_step: typing.Union[None, int] = None,
             draw_total_steps: bool = False,
+            graphics_dir: str = None
     ):
         self._base_population: typing.List[str] = base_population
 
@@ -64,6 +67,9 @@ class GeneticAlgorithm:
         self._selection_intensities: typing.List[float] = []
         self._growth_rates: typing.List[float] = []
         self._convergence_iteration: typing.Union[None, float] = None
+
+        self._graphics_dir: str = graphics_dir
+        self._graphics_data: dict = collections.defaultdict(list)
 
     @property
     def base_population(self) -> typing.List[str]:
@@ -172,6 +178,16 @@ class GeneticAlgorithm:
             self._stats["Teta_max"] = loss_of_diversity
             self._stats["NI_Teta_max"] = self._iteration
 
+        # graphics data
+        self._graphics_data["avg_score"].append(current_population.avg_score)
+        self._graphics_data["intensity"].append(selection_intensity)
+        self._graphics_data["difference"].append(selection_difference)
+        self._graphics_data["std_score"].append(current_population.std_score)
+        self._graphics_data["best_part"].append(num_of_best / self._population_len)
+        self._graphics_data["growth_rate"].append(growth_rate)
+        self._graphics_data["reproduction"].append(reproduction)
+        self._graphics_data["loss_of_diversity"].append(loss_of_diversity)
+
     def _update_final_stats(self):
         if self._stats_mode == "noise":
             self._update_noise_stats()
@@ -185,6 +201,42 @@ class GeneticAlgorithm:
         self._stats["I_avg"] = np.mean(self._selection_intensities)
         self._stats["GR_avg"] = np.mean(self._growth_rates)
         self._stats["NI"] = self._convergence_iteration or -1
+
+    def _draw_graphics(self):
+        utils.draw_graphics(
+            self._graphics_data["avg_score"], "AVG FITNESS", "N generation", "Avg fitness",
+            filename=f"{self._graphics_dir}/avg_score.png"
+        )
+        utils.draw_graphics(
+            self._graphics_data["intensity"], "INTENSITY", "N generation", "Intensity",
+            filename=f"{self._graphics_dir}/intensity.png"
+        )
+        utils.draw_graphics(
+            self._graphics_data["difference"], "DIFFERENCE", "N generation", "Difference",
+            filename=f"{self._graphics_dir}/difference.png"
+        )
+        utils.draw_graphics(
+            self._graphics_data["std_score"], "STANDARD DEVIATION", "N generation", "Std",
+            filename=f"{self._graphics_dir}/std.png"
+        )
+        utils.draw_multiple(
+            [self._graphics_data["intensity"], self._graphics_data["difference"]], "INTENSITY AND DIFFERENCE",
+            "N generation", "Intensity and Difference",
+            filename=f"{self._graphics_dir}/intensity_difference.png"
+        )
+        utils.draw_graphics(
+            self._graphics_data["best_part"], "BEST PARTITION", "N generation", "Best part",
+            filename=f"{self._graphics_dir}/best_count.png"
+        )
+        utils.draw_graphics(
+            self._graphics_data["growth_rate"], "GROWTH RATE", "N generation", "Growth rate",
+            filename=f"{self._graphics_dir}/growth_rate.png"
+        )
+        utils.draw_multiple(
+            [self._graphics_data["reproduction"], self._graphics_data["loss_of_diversity"]],
+            "REPRODUCTION AND LOSS OF DIVERSITY", "N generation", "Reproduction and Loss of Diversity",
+            filename=f"{self._graphics_dir}/reproduction_loss_of_diversity.png"
+        )
 
     def _mutate(self):
         mutated_gens = int(round_half_up(self._total_genes * self._mutation_rate))
@@ -294,6 +346,9 @@ class GeneticAlgorithm:
 
         if self._draw_total_steps:
             self._draw_total_scores(self._total_scores, "Total score difference")
+
+        if self._graphics_dir:
+            self._draw_graphics()
 
     @staticmethod
     def _draw_total_scores(scores: typing.List[float], title: str):

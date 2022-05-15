@@ -227,3 +227,34 @@ def aggregate_runs_data(runs_data: list, stats_mode: str) -> dict:
             })
 
     return result
+
+
+def draw_graphics(
+        values: list, title: str, x_label: str = None, y_label: str = None, color: str = "b", filename: str = None
+):
+    x = np.arange(0., len(values), 1.)
+    plt.plot(x, values, color=color)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+
+    if filename:
+        plt.savefig(filename)
+
+    plt.show()
+
+
+def draw_multiple(
+        values: list, title: str, x_label: str = None, y_label: str = None, filename: str = None
+):
+    x = np.arange(0., len(values[0]), 1.)
+    for value in values:
+        plt.plot(x, value)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+
+    if filename:
+        plt.savefig(filename)
+
+    plt.show()
