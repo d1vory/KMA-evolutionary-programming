@@ -20,7 +20,7 @@ class FH(models.Function):
 
 
 class FHD(models.Function):
-    def __init__(self, theta):
+    def __init__(self, theta=0):
         self._theta = theta
 
     @property

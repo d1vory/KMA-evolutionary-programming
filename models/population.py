@@ -6,7 +6,7 @@ import models
 
 
 class Population:
-    def __init__(self, individuals: typing.List[models.Individual], sort_on_init: bool = True):
+    def __init__(self, individuals: typing.List[models.Individual]):
         self._individuals: typing.List[models.Individual] = individuals
 
         self._score: typing.Union[float, None] = None
@@ -14,11 +14,6 @@ class Population:
         self._std_score: typing.Union[float, None] = None
         self._fitness_arr: typing.Union[typing.List[float], None] = None
         self._rank: typing.Union[float, None] = None
-
-        if sort_on_init:
-            self._individuals: typing.List[models.Individual] = sorted(
-                self._individuals, key=lambda x: x.fitness
-            )
 
     @property
     def individuals(self) -> typing.List[models.Individual]:
@@ -58,6 +53,11 @@ class Population:
             self._rank = sum([individual.rank for individual in self._individuals])
 
         return self._rank
+
+    def sort(self):
+        self._individuals: typing.List[models.Individual] = sorted(
+            self._individuals, key=lambda x: x.fitness
+        )
 
     def get_fittest(self, n: int) -> typing.List[models.Individual]:
         return self._individuals[-n:]

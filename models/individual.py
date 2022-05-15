@@ -11,9 +11,17 @@ class Individual:
     def genotype(self) -> str:
         return self._genotype
 
+    @genotype.setter
+    def genotype(self, value: str):
+        self._genotype = value
+
     @property
     def fitness(self) -> float:
         return self._fitness
+
+    @fitness.setter
+    def fitness(self, value: float):
+        self._fitness = value
 
     @property
     def rank(self) -> float:
@@ -34,3 +42,6 @@ class Individual:
 
     def __eq__(self, other) -> bool:
         return self._genotype == other.genotype
+
+    def __len__(self) -> int:
+        return len(self._genotype)

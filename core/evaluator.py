@@ -1,4 +1,5 @@
 import datetime
+import functools
 import json
 import multiprocessing
 import pathlib
@@ -13,7 +14,7 @@ class Evaluator:
 
         self._writing_dir.mkdir(parents=True, exist_ok=True)
 
-        self._cpu_count = cpu_count or multiprocessing.cpu_count()
+        self._cpu_count = cpu_count or multiprocessing.cpu_count() - 1
 
     def _write_report(self, name, data):
         with open(self._writing_dir / f'{name}.json', 'w', encoding='utf-8') as f:
@@ -28,9 +29,13 @@ class Evaluator:
         stats_mode = fitness_fn.stats_mode
         length = fitness_fn.length
 
-        generator = fitness_fn.generator(n=n, length=length, optimal=True)
-
         for epoch in range(epochs):
+            optimal = True
+
+            if fitness_fn.mutation_rate and epoch >= 5:  # epochs from 0
+                optimal = False
+
+            generator = fitness_fn.generator(n=n, length=length, optimal=optimal)
             run_data = {}
 
             population = generator.generate_population()
@@ -49,6 +54,8 @@ class Evaluator:
                     stats_mode=stats_mode,
                     modified_selection_algo=selection_fn.modified,
                     max_iteration=max_iteration,
+                    mutation_rate=fitness_fn.mutation_rate,
+                    early_stopping=fitness_fn.early_stopping,
                     draw_step=None,
                     draw_total_steps=False,
                 )
@@ -80,23 +87,17 @@ class Evaluator:
         print(f"Report successfully generated: {name}.json")
 
     def evaluate(self):
-        procs = []
-
         epochs = self._config.epochs
         max_iteration = self._config.max_iteration
 
         for n in self._config.n_vals:
-            for fitness_fn in self._config.fitness_fns:
-                proc = multiprocessing.Process(
-                    target=self._evaluate_experiment,
-                    args=(fitness_fn, n, epochs, max_iteration)
+            with multiprocessing.Pool(self._cpu_count) as p:
+                p.map(
+                    functools.partial(
+                        self._evaluate_experiment, n=n, epochs=epochs, max_iteration=max_iteration
+                    ),
+                    self._config.fitness_fns
                 )
-                procs.append(proc)
-                proc.start()
-
-        # complete the processes
-        for proc in procs:
-            proc.join()
 
 
 if __name__ == "__main__":

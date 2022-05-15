@@ -1,10 +1,17 @@
 import logging
+import math
+import random
 import typing
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import models
+
+
+def round_half_up(n, decimals=0):
+    multiplier = 10 ** decimals
+    return math.floor(n * multiplier + 0.5) / multiplier
 
 
 class GeneticAlgorithm:
@@ -19,6 +26,8 @@ class GeneticAlgorithm:
             modified_selection_algo: bool = False,
             stats_mode: str = "full",
             max_iteration: int = 10_000_000,
+            mutation_rate: typing.Union[None, float] = None,
+            early_stopping: typing.Union[None, int] = None,
             draw_step: typing.Union[None, int] = None,
             draw_total_steps: bool = False,
     ):
@@ -36,11 +45,17 @@ class GeneticAlgorithm:
         self._draw_step: int = draw_step
         self._draw_total_steps = draw_total_steps
         self._iteration: int = 0
+        self._mutation_rate: float = mutation_rate
+        self._early_stopping: int = early_stopping
+        self._early_stopping_iteration: int = 0  # works only with mutation rate
 
         self._populations: typing.List[models.Population] = []
         self._total_scores: typing.List[float] = []
 
         self._population: models.Population = self._evaluate_population(self._base_population)
+        self._population_len: int = len(self._population)
+        self._individual_len: int = len(self._population.individuals[0])
+        self._total_genes: int = self._population_len * self._individual_len
 
         self._stats: typing.Dict[str, float] = {}
         self._selection_differences: typing.List[float] = []
@@ -171,6 +186,22 @@ class GeneticAlgorithm:
         self._stats["GR_avg"] = np.mean(self._growth_rates)
         self._stats["NI"] = self._convergence_iteration or -1
 
+    def _mutate(self):
+        mutated_gens = int(round_half_up(self._total_genes * self._mutation_rate))
+
+        if mutated_gens:
+            for _ in range(mutated_gens):
+                individuals_index = random.randint(0, self._population_len - 1)
+                genes_index = random.randint(0, self._individual_len - 1)
+
+                individual = self._population.individuals[individuals_index]
+                genotype = list(individual.genotype)
+
+                genotype[genes_index] = "1" if genotype[genes_index] == "0" else "0"
+
+                individual.genotype = "".join(genotype)
+                individual.fitness = self._fitness_function(individual.genotype)
+
     def _evaluate_population(self, population: typing.List[str]) -> models.Population:
         individuals = []
 
@@ -180,17 +211,15 @@ class GeneticAlgorithm:
 
         return models.Population(individuals)
 
-    def _calculate_ranks(self, population: models.Population):
-        individuals: typing.List[models.Individual] = []
-
+    def _calculate_ranks(self):
         i = 0
-        while i < len(population):
+        while i < len(self._population):
             j = i + 1
 
             if self._modified_selection_algo:
                 r = [i]
-                while j < len(population):
-                    if population.individuals[j] == population.individuals[i]:
+                while j < len(self._population):
+                    if self._population.individuals[j] == self._population.individuals[i]:
                         r.append(j)
                     else:
                         break
@@ -202,25 +231,16 @@ class GeneticAlgorithm:
                 rank = i
 
             while i < j:
-                individual = population.individuals[i]
-
-                individuals.append(models.Individual(
-                    individual.genotype, individual.fitness, self._scale_function(rank)
-                ))
+                self._population.individuals[i].rank = self._scale_function(rank)
 
                 i += 1
-
-        # for index, individual in enumerate(population.individuals):
-        #     individuals.append(models.Individual(
-        #         individual.genotype, individual.fitness, self._scale_function(index)
-        #     ))
-
-        return models.Population(individuals, sort_on_init=False)
 
     def fit(self):
         logging.info("Starting fitting")
 
         while True:
+            self._population.sort()
+
             total_score: float = self._population.score
 
             self._populations.append(self._population)
@@ -234,7 +254,7 @@ class GeneticAlgorithm:
                 break
 
             if self._population.convergence():
-                self._convergence_iteration = self.iteration
+                self._convergence_iteration = self._iteration
                 logging.info(f"Convergence of the population, iterations - {self._iteration}")
                 break
 
@@ -246,8 +266,19 @@ class GeneticAlgorithm:
                     individual.fitness for individual in self._population.individuals
                 ], msg)
 
-            self._population = self._calculate_ranks(self._population)
+            self._calculate_ranks()
             self._population = self._selection_algo(self._population)
+            if self._mutation_rate:
+                previous_population = self._populations[-1]
+
+                if self._population.score - previous_population.score <= 0.0001:
+                    self._early_stopping_iteration += 1
+
+                if self._early_stopping_iteration == self._early_stopping:
+                    logging.info(f"Early stopping on {self._iteration} after {self._early_stopping_iteration}")
+                    break
+
+                self._mutate()
 
             self._iteration += 1
 
