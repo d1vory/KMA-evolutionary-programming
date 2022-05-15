@@ -2,11 +2,7 @@ import datetime
 import json
 import pathlib
 
-import evaluator_config
-import genetic_algorithm
-import scale_functions
-import selection_algorithms
-import utils
+from core import evaluator_config, genetic_algorithm, scale_functions, selection_algorithms, utils
 
 
 class Evaluator:

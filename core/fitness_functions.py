@@ -2,7 +2,7 @@ import math
 import re
 
 import models
-import utils
+from core import utils
 
 
 class FConst(models.Function):

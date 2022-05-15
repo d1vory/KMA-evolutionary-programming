@@ -5,9 +5,7 @@
 # 2. Drawing
 import time
 
-import evaluator
-import evaluator_config
-import report_builder
+from core import evaluator_config, report_builder, evaluator
 
 
 def main():
@@ -20,7 +18,7 @@ def main():
     # modified = [True, False]
     # fitness_fns = ['fconst', 'fh', 'fhd(theta=10)', 'fhd(theta=50)', 'fhd(theta=150)', 'f=x^2',
     # 'f=x', 'f=x^4', 'f=2x^2', 'f=(5.12)^2-x^2', 'f=(5.12)^4-x^4', 'f=e^(0.25*x)', 'f=e^(1*x)', 'f=e^(2*x)']
-    fitness_fns = ['fconst']
+    fitness_fns = ['fconst', 'f=x^2']
     evaluator.Evaluator(
         evaluator_config.get_config(n_vals=n_vals, writing_dir=working_dir, fitness_fns=fitness_fns)
     ).evaluate()

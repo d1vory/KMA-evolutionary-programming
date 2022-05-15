@@ -2,11 +2,11 @@ import itertools
 from dataclasses import dataclass, field
 from typing import List
 
-import fitness_functions
+from core import fitness_functions
 import generators
 import models
 
-WRITING_DIR_DEFAULT = 'reports'
+WRITING_DIR_DEFAULT = '../reports'
 N_DEFAULT_VALUES = [100, 500, 1000]
 MAX_ITERATION_DEFAULT = 10_000_000
 EPOCHS_DEFAULT = 10

@@ -5,8 +5,7 @@ import os
 import pathlib
 import typing
 
-import utils
-import xlsx
+from core import utils, xlsx
 
 FULL_STATS_KEYS = ['NI', 'F_found', 'F_avg', 'I_min', 'NI_I_min', 'I_max', 'NI_I_max', 'I_avg', 'GR_early',
                    'GR_avg', 'GR_late', 'NI_GR_late', 'RR_min', 'NI_RR_min', 'RR_max', 'NI_RR_max', 'RR_avg',
@@ -118,4 +117,4 @@ class ReportBuilder:
 
 
 if __name__ == "__main__":
-    ReportBuilder("reports").generate()
+    ReportBuilder("../reports").generate()
