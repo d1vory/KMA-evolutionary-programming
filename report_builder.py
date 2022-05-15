@@ -5,13 +5,14 @@ import os
 import pathlib
 import typing
 
+import utils
 import xlsx
 
 FULL_STATS_KEYS = ['NI', 'F_found', 'F_avg', 'I_min', 'NI_I_min', 'I_max', 'NI_I_max', 'I_avg', 'GR_early',
                    'GR_avg', 'GR_late', 'NI_GR_late', 'RR_min', 'NI_RR_min', 'RR_max', 'NI_RR_max', 'RR_avg',
                    'Teta_min', 'NI_Teta_min', 'Teta_max', 'NI_Teta_max', 'Teta_avg', 's_min', 'NI_s_min', 's_max',
                    'NI_s_max', 's_avg']
-FULL_TOTAL_STATS_KEYS = []
+FULL_TOTAL_STATS_KEYS = ["Suc", "Min_NI", "Max_NI", "Avg_NI"]
 
 NOISE_STATS_KEYS = ['NI', 'ConvTo']
 NOISE_TOTAL_STATS_KEYS = ["Suc", "Num0", "Num1", "Min_NI", "Max_NI", "Avg_NI"]
@@ -20,8 +21,8 @@ NOISE_TOTAL_STATS_KEYS = ["Suc", "Num0", "Num1", "Min_NI", "Max_NI", "Avg_NI"]
 class ReportBuilder:
     def __init__(self, report_dir: str, reports: typing.Union[list, None] = None):
         self._reports: list = reports
-        self._report_dir: pathlib.Path = pathlib.Path(f"./{report_dir}")
-        self._writing_dir: pathlib.Path = self._report_dir / "xlsx"
+        self._report_dir: pathlib.Path = pathlib.Path(f"./{report_dir}/data")
+        self._writing_dir: pathlib.Path = pathlib.Path(f"./{report_dir}/xlsx")
 
         self._writing_dir.mkdir(parents=True, exist_ok=True)
 
@@ -52,7 +53,11 @@ class ReportBuilder:
         fitness_fn_values = report_data["fitness_fn_values"]
         stats_mode = report_data["stats_mode"]
         data = report_data["data"]
-        total_data = report_data["total_data"]
+
+        if "total_data" not in report_data:
+            total_data = utils.aggregate_runs_data(data, stats_mode)
+        else:
+            total_data = report_data["total_data"]
 
         stats_keys = NOISE_STATS_KEYS if stats_mode == "noise" else FULL_STATS_KEYS
         total_stats_keys = NOISE_TOTAL_STATS_KEYS if stats_mode == "noise" else FULL_TOTAL_STATS_KEYS

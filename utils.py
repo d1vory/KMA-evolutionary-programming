@@ -1,3 +1,4 @@
+import collections
 import typing
 
 import matplotlib.pyplot as plt
@@ -70,3 +71,43 @@ def draw_population(p: typing.List[int], title: str):
     plt.plot(x, p, "k", linewidth=2)
     plt.title(title)
     plt.show()
+
+
+def aggregate_runs_data(runs_data: list, stats_mode: str) -> dict:
+    total_data = collections.defaultdict(dict)
+    result = {}
+
+    for epoch_data in runs_data:
+        for selection_fn in epoch_data:
+            if selection_fn not in total_data:
+                total_data[selection_fn] = collections.defaultdict(list)
+
+            total_data[selection_fn]["Suc"].append(epoch_data[selection_fn]["NI"] != -1)
+            total_data[selection_fn]["NI"].append(epoch_data[selection_fn]["NI"])
+
+            if stats_mode == "noise":
+                total_data[selection_fn]["Num0"].append(epoch_data[selection_fn]["ConvTo"] == 0)
+                total_data[selection_fn]["Num1"].append(epoch_data[selection_fn]["ConvTo"] == 1)
+
+    for key in total_data:
+        data = total_data[key]
+        total = len(data["Suc"])
+        suc = sum(data["Suc"])
+
+        result[key] = {
+            "Suc": suc / total,
+            "Min_NI": min(data["NI"]),
+            "Max_NI": max(data["NI"]),
+            "Avg_NI": np.mean(data["NI"]),
+        }
+
+        if stats_mode == "noise":
+            num0 = sum(data["Num0"])
+            num1 = sum(data["Num1"])
+
+            result[key].update({
+                "Num0": num0 / total,
+                "Num1": num1 / total,
+            })
+
+    return result
