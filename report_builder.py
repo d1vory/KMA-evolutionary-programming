@@ -12,10 +12,18 @@ FULL_STATS_KEYS = ['NI', 'F_found', 'F_avg', 'I_min', 'NI_I_min', 'I_max', 'NI_I
                    'GR_avg', 'GR_late', 'NI_GR_late', 'RR_min', 'NI_RR_min', 'RR_max', 'NI_RR_max', 'RR_avg',
                    'Teta_min', 'NI_Teta_min', 'Teta_max', 'NI_Teta_max', 'Teta_avg', 's_min', 'NI_s_min', 's_max',
                    'NI_s_max', 's_avg']
-FULL_TOTAL_STATS_KEYS = ["Suc", "Min_NI", "Max_NI", "Avg_NI"]
+FULL_TOTAL_STATS_KEYS = ['Suc', 'Min_NI', 'Max_NI', 'Avg_NI', 'Sigma_NI', 'Min_I_min', 'NI_I_min', 'Max_I_max',
+                         'NI_I_max', 'Avg_I_min', 'Avg_I_max', 'Avg_I_avg', 'Sigma_I_max', 'Sigma_I_min',
+                         'Sigma_I_avg', 'AvgGR_early', 'MinGR_early', 'MaxGR_early', 'AvgGR_late', 'MinGR_late',
+                         'MaxGR_late', 'AvgGR_avg', 'MinGR_avg', 'MaxGR_avg', 'Min_RR_min', 'NI_RR_min',
+                         'Max_RR_max', 'NI_RR_max', 'Avg_RR_min', 'Avg_RR_max', 'Avg_RR_avg', 'Sigma_RR_max',
+                         'Sigma_RR_min', 'Sigma_RR_avg', 'Min_Teta_min', 'NI_Teta_min', 'Max_Teta_max',
+                         'NI_Teta_max', 'Avg_Teta_min', 'Avg_Teta_max', 'Avg_Teta_avg', 'Sigma_Teta_max',
+                         'Sigma_Teta_min', 'Sigma_Teta_avg', 'Min_s_min', 'NI_s_min', 'Max_s_max', 'NI_s_max',
+                         'Avg_s_min', 'Avg_s_max', 'Avg_s_avg']
 
 NOISE_STATS_KEYS = ['NI', 'ConvTo']
-NOISE_TOTAL_STATS_KEYS = ["Suc", "Num0", "Num1", "Min_NI", "Max_NI", "Avg_NI"]
+NOISE_TOTAL_STATS_KEYS = ["Suc", "Num0", "Num1", "Min_NI", "Max_NI", "Avg_NI", "Sigma_NI"]
 
 
 class ReportBuilder:
@@ -54,7 +62,7 @@ class ReportBuilder:
         stats_mode = report_data["stats_mode"]
         data = report_data["data"]
 
-        if "total_data" not in report_data:
+        if "total_data" not in report_data or not report_data["total_data"]:
             total_data = utils.aggregate_runs_data(data, stats_mode)
         else:
             total_data = report_data["total_data"]
