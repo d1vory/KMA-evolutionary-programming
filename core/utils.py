@@ -229,32 +229,45 @@ def aggregate_runs_data(runs_data: list, stats_mode: str) -> dict:
     return result
 
 
-def draw_graphics(
-        values: list, title: str, x_label: str = None, y_label: str = None, color: str = "b", filename: str = None
+def _draw(
+        values: list,
+        title: str,
+        x_label: str = None,
+        y_label: str = None,
+        color: str = "b",
+        filename: str = None,
+        mode: str = "one"
 ):
-    x = np.arange(0., len(values), 1.)
-    plt.plot(x, values, color=color)
+    if filename:
+        plt.ioff()
+
+    if mode == "multiple":
+        x = np.arange(0., len(values[0]), 1.)
+        for value in values:
+            plt.plot(x, value)
+    else:
+        x = np.arange(0., len(values), 1.)
+        plt.plot(x, values, color=color)
+
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
 
     if filename:
         plt.savefig(filename)
+        plt.close()
+        plt.ion()
+    else:
+        plt.show()
 
-    plt.show()
+
+def draw_graphics(
+        values: list, title: str, x_label: str = None, y_label: str = None, color: str = "b", filename: str = None
+):
+    _draw(values, title, x_label, y_label, color, filename)
 
 
 def draw_multiple(
         values: list, title: str, x_label: str = None, y_label: str = None, filename: str = None
 ):
-    x = np.arange(0., len(values[0]), 1.)
-    for value in values:
-        plt.plot(x, value)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.title(title)
-
-    if filename:
-        plt.savefig(filename)
-
-    plt.show()
+    _draw(values, title, x_label, y_label, filename=filename, mode="multiple")

@@ -1,4 +1,5 @@
 import collections
+import json
 import logging
 import math
 import random
@@ -203,6 +204,9 @@ class GeneticAlgorithm:
         self._stats["NI"] = self._convergence_iteration or -1
 
     def _draw_graphics(self):
+        with open(f"{self._graphics_dir}/data.json", 'w', encoding='utf-8') as f:
+            json.dump(self._graphics_data, f, ensure_ascii=False, indent=4)
+
         utils.draw_graphics(
             self._graphics_data["avg_score"], "AVG FITNESS", "N generation", "Avg fitness",
             filename=f"{self._graphics_dir}/avg_score.png"
