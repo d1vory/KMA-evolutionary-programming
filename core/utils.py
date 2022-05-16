@@ -147,6 +147,12 @@ def aggregate_runs_data(runs_data: list, stats_mode: str, optimal: str) -> dict:
         total = len(data["Suc"])
         suc = sum(data["Suc"])
 
+        if not suc:
+            result[key] = {
+                "Suc": suc / total,
+            }
+            continue
+
         result[key] = {
             "Suc": suc / total,
             "Min_NI": min(data["NI"]),
@@ -294,9 +300,9 @@ def draw_multiple(
 
 
 if __name__ == "__main__":
-    x = 10.23
-    enc = encode(x, 0, 10.23, 10)
+    x_ = 10.23
+    enc = encode(x_, 0, 10.23, 10)
     print(enc)
     dec = decode(enc, 0, 10.23, 10)
     print(dec)
-    print(dec == x)
+    print(dec == x_)

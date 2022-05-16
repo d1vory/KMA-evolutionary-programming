@@ -5,7 +5,7 @@ import os
 import pathlib
 import typing
 
-from core import utils, xlsx
+from core import xlsx
 
 FULL_STATS_KEYS = ['NI', 'F_found', 'F_avg', 'I_min', 'NI_I_min', 'I_max', 'NI_I_max', 'I_avg', 'GR_early',
                    'GR_avg', 'GR_late', 'NI_GR_late', 'RR_min', 'NI_RR_min', 'RR_max', 'NI_RR_max', 'RR_avg',
@@ -60,11 +60,7 @@ class ReportBuilder:
         fitness_fn_values = report_data["fitness_fn_values"]
         stats_mode = report_data["stats_mode"]
         data = report_data["data"]
-
-        if "total_data" not in report_data or not report_data["total_data"]:
-            total_data = utils.aggregate_runs_data(data, stats_mode)
-        else:
-            total_data = report_data["total_data"]
+        total_data = report_data["total_data"]
 
         stats_keys = NOISE_STATS_KEYS if stats_mode == "noise" else FULL_STATS_KEYS
         total_stats_keys = NOISE_TOTAL_STATS_KEYS if stats_mode == "noise" else FULL_TOTAL_STATS_KEYS
@@ -103,7 +99,10 @@ class ReportBuilder:
             lst = [f"Total stats" if write_title else '', stat]
 
             for beta, modified in selection_fns:
-                lst.append(total_data[f"{beta}${modified}"][stat])
+                try:
+                    lst.append(total_data[f"{beta}${modified}"][stat])
+                except KeyError:
+                    lst.append("")
 
             self._writer.col(lst, style="bold_bg" if write_title else "normal")
 

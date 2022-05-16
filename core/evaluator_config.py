@@ -50,7 +50,7 @@ FITNESS_FN_TABLE = {
         "fconst", generators.ConstGenerator, "noise", 100, fitness_functions.FConst, "1" * 100, {}
     ),
     "fh": FitnessFunctionConfig("fh", generators.NormalGenerator, "full", 100, fitness_functions.FH, "0" * 100, {}),
-    "fhd": FitnessFunctionConfig("fhd", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {}),
+    # "fhd": FitnessFunctionConfig("fhd", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {}),
     "fhd(theta=10)": FitnessFunctionConfig(
         "fhd(theta=10)", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {"theta": 10}
     ),
