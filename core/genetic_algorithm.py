@@ -114,20 +114,20 @@ class GeneticAlgorithm:
         selection_difference = current_population.avg_score - previous_population.avg_score
         self._selection_differences.append(selection_difference)
 
-        if "s_min" not in self._stats or selection_difference < self._stats["s_min"]:
+        if selection_difference < self._stats.get("s_min", math.inf):
             self._stats["s_min"] = selection_difference
             self._stats["NI_s_min"] = self._iteration
-        if "s_max" not in self._stats or selection_difference > self._stats["s_max"]:
+        if selection_difference > self._stats.get("s_max", -math.inf):
             self._stats["s_max"] = selection_difference
             self._stats["NI_s_max"] = self._iteration
 
-        selection_intensity = selection_difference / np.std(previous_population.fitness_arr)
+        selection_intensity = selection_difference / previous_population.std_score
         self._selection_intensities.append(selection_intensity)
 
-        if "I_min" not in self._stats or selection_intensity < self._stats["I_min"]:
+        if selection_intensity < self._stats.get("I_min", math.inf):
             self._stats["I_min"] = selection_intensity
             self._stats["NI_I_min"] = self._iteration
-        if "I_max" not in self._stats or selection_intensity > self._stats["I_max"]:
+        if selection_intensity > self._stats.get("I_max", -math.inf):
             self._stats["I_max"] = selection_intensity
             self._stats["NI_I_max"] = self._iteration
 
@@ -143,7 +143,7 @@ class GeneticAlgorithm:
             if individual in current_population:
                 in_parent_pool += 1
 
-        for individual in current_population.individuals:
+        for individual in current_population.individuals[::-1]:
             if individual == best:
                 num_of_best += 1
                 continue
@@ -154,28 +154,28 @@ class GeneticAlgorithm:
             growth_rate = num_of_best / num_of_best_in_previous
         self._growth_rates.append(growth_rate)
 
-        if self._iteration == 2:
+        if self._iteration == 1:
             self._stats["GR_early"] = growth_rate
-        if "GR_late" not in self._stats and num_of_best >= len(current_population.individuals) / 2:
+        if "GR_late" not in self._stats and num_of_best >= self._population_len / 2:
             self._stats["GR_late"] = growth_rate
             self._stats["NI_GR_late"] = self._iteration
 
-        reproduction = in_parent_pool / len(previous_population.individuals)
+        reproduction = in_parent_pool / self._population_len
         loss_of_diversity = 1 - reproduction
 
         self._reproduction_coeffs.append(reproduction)
         self._loss_of_diversity_coeffs.append(loss_of_diversity)
 
-        if "RR_min" not in self._stats or reproduction < self._stats["RR_min"]:
+        if reproduction < self._stats.get("RR_min", math.inf):
             self._stats["RR_min"] = reproduction
             self._stats["NI_RR_min"] = self._iteration
-        if "RR_max" not in self._stats or reproduction > self._stats["RR_max"]:
+        if reproduction > self._stats.get("RR_max", -math.inf):
             self._stats["RR_max"] = reproduction
             self._stats["NI_RR_max"] = self._iteration
-        if "Teta_min" not in self._stats or loss_of_diversity < self._stats["Teta_min"]:
+        if loss_of_diversity < self._stats.get("Teta_min", math.inf):
             self._stats["Teta_min"] = loss_of_diversity
             self._stats["NI_Teta_min"] = self._iteration
-        if "Teta_max" not in self._stats or loss_of_diversity > self._stats["Teta_max"]:
+        if loss_of_diversity > self._stats.get("Teta_max", -math.inf):
             self._stats["Teta_max"] = loss_of_diversity
             self._stats["NI_Teta_max"] = self._iteration
 
@@ -309,7 +309,7 @@ class GeneticAlgorithm:
                 logging.info(f"Max iteration exceeded, iterations - {self._iteration}")
                 break
 
-            if self._population.convergence():
+            if not self._mutation_rate and self._population.convergence():
                 self._convergence_iteration = self._iteration
                 logging.info(f"Convergence of the population, iterations - {self._iteration}")
                 break
