@@ -10,6 +10,10 @@ def decode_sampling(a, b, x, m):
     return a + x * ((b - a) / (2 ** m - 1))
 
 
+def encode_sampling(a, b, x, m):
+    return int(((x - a) / (b - a)) * (2 ** m - 1))
+
+
 def get_bin(x, n=0):
     """
     Get the binary representation of x.
@@ -52,6 +56,12 @@ def decode(x, a, b, m):
     return decode_sampling(a, b, x, m)
 
 
+def encode(x, a, b, m):
+    x = int(encode_sampling(a, b, x, m))
+    x = encode_gray(x)
+    return get_bin(x, m)
+
+
 def draw_population(p: typing.List[int], title: str):
     if not p:
         return
@@ -73,18 +83,28 @@ def draw_population(p: typing.List[int], title: str):
     plt.show()
 
 
-def aggregate_runs_data(runs_data: list, stats_mode: str) -> dict:
+def aggregate_runs_data(runs_data: list, stats_mode: str, optimal: str) -> dict:
     total_data = collections.defaultdict(dict)
     result = {}
 
     for epoch_data in runs_data:
         for selection_fn in epoch_data:
-            if epoch_data[selection_fn]["NI"] == -1:
-                print("ERROR --- RUN WAS NOT SUCCESSFUL, POPULATION WAS NOT CONVERGENCE")
-                continue
+            # if epoch_data[selection_fn]["NI"] == -1:
+            #     print("ERROR --- RUN WAS NOT SUCCESSFUL, POPULATION WAS NOT CONVERGENCE")
+            #     continue
 
             if selection_fn not in total_data:
                 total_data[selection_fn] = collections.defaultdict(list)
+
+            if stats_mode == "full":
+                if epoch_data[selection_fn]["NI"] == -1:
+                    total_data[selection_fn]["Suc"].append(False)
+                    print("ERROR --- RUN WAS NOT SUCCESSFUL, POPULATION WAS NOT CONVERGENCE")
+                    continue
+                if epoch_data[selection_fn]["F"] != optimal:
+                    total_data[selection_fn]["Suc"].append(False)
+                    print("ERROR --- RUN WAS NOT SUCCESSFUL, POPULATION WAS NOT OPTIMAL")
+                    continue
 
             total_data[selection_fn]["Suc"].append(epoch_data[selection_fn]["NI"] != -1)
             total_data[selection_fn]["NI"].append(epoch_data[selection_fn]["NI"])
@@ -271,3 +291,12 @@ def draw_multiple(
         values: list, title: str, x_label: str = None, y_label: str = None, filename: str = None
 ):
     _draw(values, title, x_label, y_label, filename=filename, mode="multiple")
+
+
+if __name__ == "__main__":
+    x = 10.23
+    enc = encode(x, 0, 10.23, 10)
+    print(enc)
+    dec = decode(enc, 0, 10.23, 10)
+    print(dec)
+    print(dec == x)

@@ -33,10 +33,12 @@ class Evaluator:
         for epoch in range(epochs):
             optimal = True
 
-            if fitness_fn.mutation_rate and epoch >= 5:  # epochs from 0
+            if fitness_fn.mutation_rate is not None and epoch >= 5:  # epochs from 0
                 optimal = False
 
-            generator = fitness_fn.generator(n=n, length=length, optimal=optimal)
+            generator = fitness_fn.generator(
+                n=n, length=length, optimal=fitness_fn.optimal, generate_optimal=optimal
+            )
             run_data = {}
 
             population = generator.generate_population()
@@ -84,7 +86,7 @@ class Evaluator:
             "fitness_fn_values": fitness_fn.values,
             "stats_mode": stats_mode,
             "data": report_data,
-            "total_data": utils.aggregate_runs_data(report_data, stats_mode)
+            "total_data": utils.aggregate_runs_data(report_data, stats_mode, fitness_fn.optimal)
         }
         current_time = datetime.datetime.now().strftime("%d.%m.%yT%H:%M:%S")
         name = f"data${current_time}${n}${fitness_fn.name}${epochs}"

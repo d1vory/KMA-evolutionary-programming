@@ -41,7 +41,7 @@ class Individual:
         return f"Individual(genotype='{self._genotype}', fitness={self._fitness:.2f}, rank={self._rank}:.2f)"
 
     def __eq__(self, other) -> bool:
-        return self._fitness == other.fitness
+        return self._genotype == other.genotype
 
     def __len__(self) -> int:
         return len(self._genotype)

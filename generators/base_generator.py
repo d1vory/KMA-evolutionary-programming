@@ -15,7 +15,7 @@ class BaseGenerator:
     """
 
     def __init__(
-            self, *, n: int, length: int, optimal: bool = False
+            self, *, n: int, length: int, optimal: str, generate_optimal: bool = False
     ):
         """
         Initialize population generator
@@ -26,7 +26,8 @@ class BaseGenerator:
         """
         self._n: int = n
         self._length: int = length
-        self._optimal: bool = optimal
+        self._optimal: str = optimal
+        self._generate_optimal: bool = generate_optimal
 
     @property
     def n(self) -> int:
@@ -45,11 +46,11 @@ class BaseGenerator:
         self._length = value
 
     @property
-    def optimal(self) -> bool:
+    def optimal(self) -> str:
         return self._optimal
 
     @optimal.setter
-    def optimal(self, value: bool):
+    def optimal(self, value: str):
         self._optimal = value
 
     @abc.abstractmethod
@@ -76,7 +77,7 @@ class BaseGenerator:
         optimal = []
         n = self._n
 
-        if self._optimal:
+        if self._generate_optimal:
             optimal.append(self.generate_optimal_individual())
             n = self._n - 1
 

@@ -61,7 +61,7 @@ class GeneticAlgorithm:
         self._individual_len: int = len(self._population.individuals[0])
         self._total_genes: int = self._population_len * self._individual_len
 
-        self._stats: typing.Dict[str, float] = {}
+        self._stats: typing.Dict[str, typing.Union[float, str]] = {}
         self._selection_differences: typing.List[float] = []
         self._reproduction_coeffs: typing.List[float] = []
         self._loss_of_diversity_coeffs: typing.List[float] = []
@@ -199,6 +199,7 @@ class GeneticAlgorithm:
         self._stats["Teta_avg"] = np.mean(self._loss_of_diversity_coeffs)
         self._stats["F_avg"] = self._population.avg_score
         self._stats["F_found"] = self._population.get_fittest(1)[0].fitness
+        self._stats["F"] = self._population.get_fittest(1)[0].genotype
         self._stats["I_avg"] = np.mean(self._selection_intensities)
         self._stats["GR_avg"] = np.mean(self._growth_rates)
         self._stats["NI"] = self._convergence_iteration or -1
@@ -309,7 +310,7 @@ class GeneticAlgorithm:
                 logging.info(f"Max iteration exceeded, iterations - {self._iteration}")
                 break
 
-            if not self._mutation_rate and self._population.convergence():
+            if self._mutation_rate is None and self._population.convergence():
                 self._convergence_iteration = self._iteration
                 logging.info(f"Convergence of the population, iterations - {self._iteration}")
                 break
@@ -324,7 +325,7 @@ class GeneticAlgorithm:
 
             self._calculate_ranks()
             self._population = self._selection_algo(self._population)
-            if self._mutation_rate:
+            if self._mutation_rate is not None:
                 previous_population = self._populations[-1]
 
                 if self._population.score - previous_population.score <= 0.0001:
