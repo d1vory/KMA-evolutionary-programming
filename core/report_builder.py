@@ -88,7 +88,10 @@ class ReportBuilder:
                 lst = [f"epoch {epoch + 1}" if epoch_to_write else '', stat]
 
                 for beta, modified in selection_fns:
-                    lst.append(data[epoch][f"{beta}${modified}"][stat])
+                    try:
+                        lst.append(data[epoch][f"{beta}${modified}"][stat])
+                    except KeyError:
+                        lst.append("NaN")
 
                 self._writer.col(lst, style="bold_bg" if epoch_to_write else "normal")
 
