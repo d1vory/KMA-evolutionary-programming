@@ -26,6 +26,7 @@ class GeneticAlgorithm:
             selection_algo: typing.Callable[
                 [models.Population], models.Population
             ],
+            optimal: str,
             modified_selection_algo: bool = False,
             stats_mode: str = "full",
             max_iteration: int = 10_000_000,
@@ -43,6 +44,7 @@ class GeneticAlgorithm:
             [models.Population], models.Population
         ] = selection_algo
         self._modified_selection_algo = modified_selection_algo
+        self._optimal: str = optimal
 
         self._stats_mode: str = stats_mode
         self._max_iteration: int = max_iteration
@@ -256,8 +258,12 @@ class GeneticAlgorithm:
 
                 genotype[genes_index] = "1" if genotype[genes_index] == "0" else "0"
 
+                # print(self._population.convergence(), id(self._population), self._iteration, individual)
                 individual.genotype = "".join(genotype)
                 individual.fitness = self._fitness_function(individual.genotype)
+                # print(self._population.convergence(), id(self._population), self._iteration, individual)
+
+            self._population.invalidate()
 
     def _evaluate_population(self, population: typing.List[str]) -> models.Population:
         individuals = []
@@ -311,12 +317,14 @@ class GeneticAlgorithm:
                 break
 
             if self._mutation_rate is None and self._population.convergence():
+                # if self._population.convergence():
                 self._convergence_iteration = self._iteration
                 logging.info(f"Convergence of the population, iterations - {self._iteration}")
                 break
 
             msg = f"Iteration #{self._iteration}. Total score: {total_score}"
             logging.info(msg)
+            # print(msg)
 
             if self._draw_step and self._iteration % self._draw_step == 0:
                 self._draw_scores([
@@ -328,11 +336,16 @@ class GeneticAlgorithm:
             if self._mutation_rate is not None:
                 previous_population = self._populations[-1]
 
-                if self._population.score - previous_population.score <= 0.0001:
+                if self._population.avg_score - previous_population.avg_score <= 0.1:
                     self._early_stopping_iteration += 1
+                else:
+                    self._early_stopping_iteration = 0
 
                 if self._early_stopping_iteration == self._early_stopping:
-                    logging.info(f"Early stopping on {self._iteration} after {self._early_stopping_iteration}")
+                    self._convergence_iteration = self._iteration
+                    logging.info(
+                        f"Early stopping on I#{self._iteration} after {self._early_stopping_iteration} iterations"
+                    )
                     break
 
                 self._mutate()

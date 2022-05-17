@@ -1,3 +1,4 @@
+import copy
 import random
 import typing
 
@@ -10,9 +11,11 @@ def rws(
     keep = []
     for p in pointers:
         i = 0
-        while sum([individual.rank for individual in population.individuals[:i + 1]]) < p:
+        sum_ = population.individuals[i].rank
+        while sum_ < p:
             i += 1
-        keep.append(population.individuals[i])
+            sum_ += population.individuals[i].rank
+        keep.append(copy.copy(population.individuals[i]))
     return models.Population(keep)
 
 

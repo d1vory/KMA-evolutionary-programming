@@ -58,6 +58,7 @@ class Evaluator:
                     fitness_function=fn,
                     scale_function=scale_functions.LinearRank(selection_fn.beta, n),
                     selection_algo=selection_algorithms.my_sus,
+                    optimal=fitness_fn.optimal,
                     stats_mode=stats_mode,
                     modified_selection_algo=selection_fn.modified,
                     max_iteration=max_iteration,

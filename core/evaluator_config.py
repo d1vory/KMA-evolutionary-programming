@@ -43,7 +43,7 @@ class EvaluatorConfig:
     writing_dir: str
 
 
-EARLY_STOPPING = 100
+EARLY_STOPPING = 10
 MUTATION_COEFF = 10
 FITNESS_FN_TABLE = {
     "fconst": FitnessFunctionConfig(
@@ -99,28 +99,28 @@ FITNESS_FN_TABLE = {
         "f=e^(2*x)", generators.NormalGenerator, "full", 10, fitness_functions.FECX, utils.encode(10.23, 0, 10.23, 10),
         {"c": 2.0, "a": 0, "b": 10.23, "m": 10}
     ),
-    # "fh | mutated": FitnessFunctionConfig(
-    #     "fh | mutated", generators.NormalGenerator, "full", 100, fitness_functions.FH,
-    #     "0" * 100, {}, 0.0000672757925523407 * MUTATION_COEFF, EARLY_STOPPING
-    # ),
+    "fh | mutated": FitnessFunctionConfig(
+        "fh | mutated", generators.NormalGenerator, "full", 100, fitness_functions.FH,
+        "0" * 100, {}, 0.0000672757925523407 * MUTATION_COEFF, EARLY_STOPPING
+    ),
     # "fhd | mutated": FitnessFunctionConfig(
     #     "fhd | mutated", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100,
     #     {}, 0.0000660220531651611 * MUTATION_COEFF, EARLY_STOPPING
     # ),
-    # "fhd(theta=10) | mutated": FitnessFunctionConfig(
-    #     "fhd(theta=10) | mutated", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100,
-    #     {"theta": 10}, 0.0000660220531651611 * MUTATION_COEFF, EARLY_STOPPING
-    # ),
-    # "f=x^2 | mutated": FitnessFunctionConfig(
-    #     "f=x^2 | mutated", generators.NormalGenerator, "full", 10, fitness_functions.FX,
-    #     utils.encode(10.23, 0, 10.23, 10),
-    #     {"mode": "x^2", "a": 0, "b": 10.23, "m": 10}, 0.00107915462143049 * MUTATION_COEFF, EARLY_STOPPING
-    # ),
-    # "f=(5.12)^2-x^2 | mutated": FitnessFunctionConfig(
-    #     "f=(5.12)^2-x^2 | mutated", generators.NormalGenerator, "full", 10, fitness_functions.FX,
-    #     utils.encode(0, -5.11, 5.12, 10),
-    #     {"mode": "(5.12)^2-x^2", "a": -5.11, "b": 5.12, "m": 10}, 0.00107915462143049 * MUTATION_COEFF, EARLY_STOPPING
-    # ),
+    "fhd(theta=10) | mutated": FitnessFunctionConfig(
+        "fhd(theta=10) | mutated", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100,
+        {"theta": 10}, 0.0000660220531651611 * MUTATION_COEFF, EARLY_STOPPING
+    ),
+    "f=x^2 | mutated": FitnessFunctionConfig(
+        "f=x^2 | mutated", generators.NormalGenerator, "full", 10, fitness_functions.FX,
+        utils.encode(10.23, 0, 10.23, 10),
+        {"mode": "x^2", "a": 0, "b": 10.23, "m": 10}, 0.00107915462143049 * MUTATION_COEFF, EARLY_STOPPING
+    ),
+    "f=(5.12)^2-x^2 | mutated": FitnessFunctionConfig(
+        "f=(5.12)^2-x^2 | mutated", generators.NormalGenerator, "full", 10, fitness_functions.FX,
+        utils.encode(0, -5.11, 5.12, 10),
+        {"mode": "(5.12)^2-x^2", "a": -5.11, "b": 5.12, "m": 10}, 0.00107915462143049 * MUTATION_COEFF, EARLY_STOPPING
+    ),
 }
 
 

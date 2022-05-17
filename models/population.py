@@ -71,10 +71,24 @@ class Population:
 
         return counter
 
+    def optimal(self, optimal: str) -> bool:
+        if self.convergence():
+            if self._individuals[0].genotype == optimal:
+                return True
+
+        return False
+
     def convergence(self) -> bool:
         return len(set(
             [individual.genotype for individual in self._individuals]
         )) == 1
+
+    def invalidate(self):
+        self._score = None
+        self._avg_score = None
+        self._std_score = None
+        self._fitness_arr = None
+        self._rank = None
 
     def __repr__(self):
         return f"Population(individuals={len(self._individuals)}, total_score={self.score})"
