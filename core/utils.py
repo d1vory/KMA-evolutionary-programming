@@ -1,9 +1,25 @@
 import collections
-import typing
+import math
+import random
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.stats import norm
+
+
+def generate_norm_dist(low, high, length):
+    variation = abs(low - high) / 2
+    std_dev = variation / 5  # 4
+    mean = (low + high) / 2
+    dist = np.random.normal(mean, std_dev, length)
+    dist = list(filter(lambda x: low <= x <= high, dist))
+    for _ in range(length - len(dist)):
+        dist.append(random.choice(dist))
+    return dist
+
+
+def round_half_up(n, decimals=0):
+    multiplier = 10 ** decimals
+    return math.floor(n * multiplier + 0.5) / multiplier
 
 
 def decode_sampling(a, b, x, m):
@@ -62,37 +78,14 @@ def encode(x, a, b, m):
     return get_bin(x, m)
 
 
-def draw_population(p: typing.List[int], title: str):
-    if not p:
-        return
-
-    if not title:
-        title = f"Population of {len(p)} individuals"
-
-    plt.figure()
-    plt.hist(p, bins=25, density=True, color="b")
-
-    # Fit a normal distribution to the population
-    mu, std = norm.fit(p)
-    # Plot the PDF.
-    x_min, x_max = plt.xlim()
-    x = np.linspace(x_min, x_max, 100)
-    p = norm.pdf(x, mu, std)
-    plt.plot(x, p, "k", linewidth=2)
-    plt.title(title)
-    plt.show()
-
-
-def aggregate_runs_data(runs_data: list, stats_mode: str, optimal: str) -> dict:
+def aggregate_runs_data(
+        runs_data: list, stats_mode: str, optimal: str, fitness_fn
+) -> dict:
     total_data = collections.defaultdict(dict)
     result = {}
 
     for epoch_data in runs_data:
         for selection_fn in epoch_data:
-            # if epoch_data[selection_fn]["NI"] == -1:
-            #     print("ERROR --- RUN WAS NOT SUCCESSFUL, POPULATION WAS NOT CONVERGENCE")
-            #     continue
-
             if selection_fn not in total_data:
                 total_data[selection_fn] = collections.defaultdict(list)
 
@@ -101,12 +94,29 @@ def aggregate_runs_data(runs_data: list, stats_mode: str, optimal: str) -> dict:
                     total_data[selection_fn]["Suc"].append(False)
                     print("ERROR --- RUN WAS NOT SUCCESSFUL, POPULATION WAS NOT CONVERGENCE")
                     continue
-                if epoch_data[selection_fn]["F"] != optimal:
-                    total_data[selection_fn]["Suc"].append(False)
-                    print("ERROR --- RUN WAS NOT SUCCESSFUL, POPULATION WAS NOT OPTIMAL")
-                    continue
 
-            total_data[selection_fn]["Suc"].append(epoch_data[selection_fn]["NI"] != -1)
+                if fitness_fn.is_arg_real():
+                    x_val = fitness_fn.decode(optimal)
+                    y_val = fitness_fn(optimal)
+                    x_found = fitness_fn.decode(epoch_data[selection_fn]["F"])
+                    y_found = fitness_fn(epoch_data[selection_fn]["F"])
+
+                    if abs(x_found - x_val) > 0.01 or y_found < y_val - 0.01:
+                        total_data[selection_fn]["Suc"].append(False)
+                        print("ERROR --- RUN WAS NOT SUCCESSFUL, REAL ARG DONT MEET OPTIMAL CONDITIONS")
+                        continue
+
+                else:
+                    if epoch_data[selection_fn]["F"] != optimal:
+                        total_data[selection_fn]["Suc"].append(False)
+                        print("ERROR --- RUN WAS NOT SUCCESSFUL, POPULATION WAS NOT OPTIMAL")
+                        continue
+
+                total_data[selection_fn]["Suc"].append(True)
+
+            else:
+                total_data[selection_fn]["Suc"].append(epoch_data[selection_fn]["NI"] != -1)
+
             total_data[selection_fn]["NI"].append(epoch_data[selection_fn]["NI"])
 
             if stats_mode == "noise":
@@ -271,6 +281,8 @@ def _draw(
         x = np.arange(0., len(values[0]), 1.)
         for value in values:
             plt.plot(x, value)
+    elif mode == "hist":
+        plt.hist(values, bins=25, color=color)
     else:
         x = np.arange(0., len(values), 1.)
         plt.plot(x, values, color=color)
@@ -297,6 +309,12 @@ def draw_multiple(
         values: list, title: str, x_label: str = None, y_label: str = None, filename: str = None
 ):
     _draw(values, title, x_label, y_label, filename=filename, mode="multiple")
+
+
+def draw_hist(
+        values: list, title: str, x_label: str = None, y_label: str = None, color: str = "b", filename: str = None
+):
+    _draw(values, title, x_label, y_label, color, filename, mode="hist")
 
 
 if __name__ == "__main__":

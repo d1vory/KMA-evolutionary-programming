@@ -3,25 +3,20 @@ import json
 import logging
 import math
 import random
+import re
 import typing
 
-import matplotlib.pyplot as plt
 import numpy as np
 
-from core import utils
 import models
-
-
-def round_half_up(n, decimals=0):
-    multiplier = 10 ** decimals
-    return math.floor(n * multiplier + 0.5) / multiplier
+from core import fitness_functions, utils
 
 
 class GeneticAlgorithm:
     def __init__(
             self, *,
             base_population: typing.List[str],
-            fitness_function: models.Function,
+            fitness_function: fitness_functions.FitnessFunction,
             scale_function: models.Function,
             selection_algo: typing.Callable[
                 [models.Population], models.Population
@@ -38,7 +33,7 @@ class GeneticAlgorithm:
     ):
         self._base_population: typing.List[str] = base_population
 
-        self._fitness_function: models.Function = fitness_function
+        self._fitness_function: fitness_functions.FitnessFunction = fitness_function
         self._scale_function: models.Function = scale_function
         self._selection_algo: typing.Callable[
             [models.Population], models.Population
@@ -139,7 +134,7 @@ class GeneticAlgorithm:
         best_in_previous = previous_population.get_fittest(1)[0]
         num_of_best_in_previous = 0
 
-        for individual in previous_population.individuals:
+        for individual in previous_population.individuals[::-1]:
             if individual == best_in_previous:
                 num_of_best_in_previous += 1
             if individual in current_population:
@@ -206,6 +201,41 @@ class GeneticAlgorithm:
         self._stats["GR_avg"] = np.mean(self._growth_rates)
         self._stats["NI"] = self._convergence_iteration or -1
 
+    def _draw_hists(self, iteration=None):
+        iteration = "final" if iteration is None else iteration
+        ones_in_genotypes = [
+            len(re.findall("1", individual.genotype))
+            for individual in self._population.individuals
+        ]
+        utils.draw_hist(
+            ones_in_genotypes,
+            f"Amount of '1' in chromosomes: {iteration} iteration",
+            "'1' in chromosomes",
+            "Individuals",
+            filename=f"{self._graphics_dir}/ones_in_genotypes_hist_{iteration}.png"
+        )
+
+        if self._fitness_function.is_arg_real():
+            fitness_arr = self._population.fitness_arr
+            x_vals = [
+                self._fitness_function.decode(individual.genotype)
+                for individual in self._population.individuals
+            ]
+            utils.draw_hist(
+                fitness_arr,
+                f"Fitness Score Hist: {iteration} iteration",
+                "Score",
+                "Individuals",
+                filename=f"{self._graphics_dir}/fitness_score_hist_{iteration}.png"
+            )
+            utils.draw_hist(
+                x_vals,
+                f"X values: {iteration} iteration",
+                "X - real number",
+                "Individuals",
+                filename=f"{self._graphics_dir}/x_vals_hist_{iteration}.png"
+            )
+
     def _draw_graphics(self):
         with open(f"{self._graphics_dir}/data.json", 'w', encoding='utf-8') as f:
             json.dump(self._graphics_data, f, ensure_ascii=False, indent=4)
@@ -246,23 +276,23 @@ class GeneticAlgorithm:
         )
 
     def _mutate(self):
-        mutated_gens = int(round_half_up(self._total_genes * self._mutation_rate))
+        population_changed = False
 
-        if mutated_gens:
-            for _ in range(mutated_gens):
-                individuals_index = random.randint(0, self._population_len - 1)
-                genes_index = random.randint(0, self._individual_len - 1)
+        for individual in self._population.individuals:
+            changed = False
 
-                individual = self._population.individuals[individuals_index]
-                genotype = list(individual.genotype)
+            for gene_index in range(self._individual_len):
+                if random.random() < self._mutation_rate:
+                    changed = True
+                    genotype = list(individual.genotype)
+                    genotype[gene_index] = "1" if genotype[gene_index] == "0" else "0"
+                    individual.genotype = "".join(genotype)
 
-                genotype[genes_index] = "1" if genotype[genes_index] == "0" else "0"
-
-                # print(self._population.convergence(), id(self._population), self._iteration, individual)
-                individual.genotype = "".join(genotype)
+            if changed:
+                population_changed = True
                 individual.fitness = self._fitness_function(individual.genotype)
-                # print(self._population.convergence(), id(self._population), self._iteration, individual)
 
+        if population_changed:
             self._population.invalidate()
 
     def _evaluate_population(self, population: typing.List[str]) -> models.Population:
@@ -327,16 +357,17 @@ class GeneticAlgorithm:
             # print(msg)
 
             if self._draw_step and self._iteration % self._draw_step == 0:
-                self._draw_scores([
-                    individual.fitness for individual in self._population.individuals
-                ], msg)
+                utils.draw_hist(self._population.fitness_arr, msg, "Scores", "Number of Individuals")
+
+            if self._graphics_dir and self._iteration < 5:
+                self._draw_hists(self._iteration)
 
             self._calculate_ranks()
             self._population = self._selection_algo(self._population)
             if self._mutation_rate is not None:
                 previous_population = self._populations[-1]
 
-                if self._population.avg_score - previous_population.avg_score <= 0.1:
+                if self._population.avg_score - previous_population.avg_score <= 0.0001:
                     self._early_stopping_iteration += 1
                 else:
                     self._early_stopping_iteration = 0
@@ -352,35 +383,21 @@ class GeneticAlgorithm:
 
             self._iteration += 1
 
-        msg = f"Finished at Iteration #{self._iteration}. Total score: {total_score}"
+        msg = f"Finished at Iteration #{self._iteration}. Total score: {total_score}. " \
+              f"Convergence: {self._convergence_iteration}"
         logging.info(msg)
+        print(msg)
 
         if self._draw_step:
-            self._draw_scores([
-                individual.fitness for individual in self._population.individuals
-            ], msg)
+            utils.draw_hist(self._population.fitness_arr, msg, "Scores", "Number of Individuals")
 
         self._update_final_stats()
 
         if self._draw_total_steps:
-            self._draw_total_scores(self._total_scores, "Total score difference")
+            utils.draw_graphics(
+                self._total_scores, "Total score", "N generation", "Score",
+            )
 
         if self._graphics_dir:
+            self._draw_hists()
             self._draw_graphics()
-
-    @staticmethod
-    def _draw_total_scores(scores: typing.List[float], title: str):
-        x = np.arange(0., len(scores), 1.)
-        plt.plot(x, scores, color="b")
-        plt.xlabel("Iterations")
-        plt.xlabel("Total score")
-        plt.title(title)
-        plt.show()
-
-    @staticmethod
-    def _draw_scores(scores: typing.List[float], title: str):
-        plt.hist(scores, bins=25, color="b")
-        plt.xlabel("Scores")
-        plt.ylabel("Number of Individuals")
-        plt.title(title)
-        plt.show()

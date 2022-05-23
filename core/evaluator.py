@@ -37,7 +37,13 @@ class Evaluator:
                 optimal = False
 
             generator = fitness_fn.generator(
-                n=n, length=length, optimal=fitness_fn.optimal, generate_optimal=optimal
+                n=n,
+                length=length,
+                optimal=fitness_fn.optimal,
+                generate_optimal=optimal,
+                fitness_fn=fn,
+                low_range=fitness_fn.values.get("low"),
+                high_range=fitness_fn.values.get("high"),
             )
             run_data = {}
 
@@ -87,7 +93,7 @@ class Evaluator:
             "fitness_fn_values": fitness_fn.values,
             "stats_mode": stats_mode,
             "data": report_data,
-            "total_data": utils.aggregate_runs_data(report_data, stats_mode, fitness_fn.optimal)
+            "total_data": utils.aggregate_runs_data(report_data, stats_mode, fitness_fn.optimal, fn)
         }
         current_time = datetime.datetime.now().strftime("%d.%m.%yT%H:%M:%S")
         name = f"data${current_time}${n}${fitness_fn.name}${epochs}"

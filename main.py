@@ -1,4 +1,5 @@
 # TODO:
+# -2. upgrade parallelization
 # -1. command line args
 # 0. comments
 # 1. Logging
@@ -10,16 +11,19 @@ from core import evaluator_config, report_builder, evaluator
 def main():
     working_dir = "reports"
 
-    n_vals = None  # [100, 500, 1000]
+    n_vals = [100]  # [100, 1000]
     # epochs = 10
     # max_iteration = 10_000_000
     # beta = [1.2, 1.6, 2.0]
     # modified = [True, False]
-    # fitness_fns = ['fconst', 'fh', 'fhd', 'fhd(theta=10)', 'fhd(theta=50)', 'fhd(theta=150)', 'f=x^2', 'f=x', 'f=x^4',
-    #                'f=2x^2', 'f=(5.12)^2-x^2', 'f=(5.12)^4-x^4', 'f=e^(0.25*x)', 'f=e^(1*x)', 'f=e^(2*x)',
-    #                'fh | mutated', 'fhd | mutated', 'fhd(theta=10) | mutated', 'f=x^2 | mutated',
+    # selection_fns = {"beta": beta, "modified": modified}
+    # fitness_fns = ['fconst', 'fh', 'fhd(theta=10)', 'fhd(theta=150)', 'f=x^2', 'f=x', 'f=x^4',
+    #                'f=(5.12)^2-x^2', 'f=(5.12)^4-x^4',
+    #                'fh | mutated', 'fhd(theta=10) | mutated', 'f=x^2 | mutated',
     #                'f=(5.12)^2-x^2 | mutated']
-    fitness_fns = None
+    # fitness_fns = ['fconst', 'fh', 'fhd(theta=10)', 'fhd(theta=150)', 'f=x^2', 'f=x', 'f=x^4',
+    #                'f=(5.12)^2-x^2', 'f=(5.12)^4-x^4']
+    fitness_fns = ['f=x^2 | mutated']
     evaluator.Evaluator(
         evaluator_config.get_config(n_vals=n_vals, writing_dir=working_dir, fitness_fns=fitness_fns)
     ).evaluate()

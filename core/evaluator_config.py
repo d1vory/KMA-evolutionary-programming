@@ -7,7 +7,7 @@ import generators
 import models
 
 WRITING_DIR_DEFAULT = '../reports'
-N_DEFAULT_VALUES = [100, 500, 1000]
+N_DEFAULT_VALUES = [100, 1000]
 MAX_ITERATION_DEFAULT = 10_000_000
 EPOCHS_DEFAULT = 10
 BETA_DEFAULT_VALUES = [1.2, 1.6, 2.0]
@@ -44,82 +44,79 @@ class EvaluatorConfig:
 
 
 EARLY_STOPPING = 10
-MUTATION_COEFF = 10
+MUTATION_COEFF = 1
 FITNESS_FN_TABLE = {
     "fconst": FitnessFunctionConfig(
         "fconst", generators.ConstGenerator, "noise", 100, fitness_functions.FConst, "1" * 100, {}
     ),
     "fh": FitnessFunctionConfig("fh", generators.NormalGenerator, "full", 100, fitness_functions.FH, "0" * 100, {}),
-    # "fhd": FitnessFunctionConfig("fhd", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {}),
     "fhd(theta=10)": FitnessFunctionConfig(
         "fhd(theta=10)", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {"theta": 10}
     ),
-    "fhd(theta=50)": FitnessFunctionConfig(
-        "fhd(theta=50)", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {"theta": 50}
-    ),
+    # "fhd(theta=50)": FitnessFunctionConfig(
+    #     "fhd(theta=50)", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {"theta": 50}
+    # ),
     "fhd(theta=150)": FitnessFunctionConfig(
         "fhd(theta=150)", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {"theta": 150}
     ),
     "f=x^2": FitnessFunctionConfig(
-        "f=x^2", generators.NormalGenerator, "full", 10, fitness_functions.FX, utils.encode(10.23, 0, 10.23, 10),
-        {"mode": "x^2", "a": 0, "b": 10.23, "m": 10}
+        "f=x^2", generators.RealGenerator, "full", 10, fitness_functions.FX, utils.encode(10.23, 0, 10.23, 10),
+        {"mode": "x^2", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 104.6529}
     ),
     "f=x": FitnessFunctionConfig(
-        "f=x", generators.NormalGenerator, "full", 10, fitness_functions.FX, utils.encode(10.23, 0, 10.23, 10),
-        {"mode": "x", "a": 0, "b": 10.23, "m": 10}
+        "f=x", generators.RealGenerator, "full", 10, fitness_functions.FX, utils.encode(10.23, 0, 10.23, 10),
+        {"mode": "x", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 10.23}
     ),
     "f=x^4": FitnessFunctionConfig(
-        "f=x^4", generators.NormalGenerator, "full", 10, fitness_functions.FX, utils.encode(10.23, 0, 10.23, 10),
-        {"mode": "x^4", "a": 0, "b": 10.23, "m": 10},
+        "f=x^4", generators.RealGenerator, "full", 10, fitness_functions.FX, utils.encode(10.23, 0, 10.23, 10),
+        {"mode": "x^4", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 10952.22947841},
     ),
-    "f=2x^2": FitnessFunctionConfig(
-        "f=2x^2", generators.NormalGenerator, "full", 10, fitness_functions.FX, utils.encode(10.23, 0, 10.23, 10),
-        {"mode": "2x^2", "a": 0, "b": 10.23, "m": 10}
-    ),
+    # "f=2x^2": FitnessFunctionConfig(
+    #     "f=2x^2", generators.NormalGenerator, "full", 10, fitness_functions.FX, utils.encode(10.23, 0, 10.23, 10),
+    #     {"mode": "2x^2", "a": 0, "b": 10.23, "m": 10}
+    # ),
     "f=(5.12)^2-x^2": FitnessFunctionConfig(
-        "f=(5.12)^2-x^2", generators.NormalGenerator, "full", 10, fitness_functions.FX,
+        "f=(5.12)^2-x^2", generators.RealGenerator, "full", 10, fitness_functions.FX,
         utils.encode(0, -5.11, 5.12, 10),
-        {"mode": "(5.12)^2-x^2", "a": -5.11, "b": 5.12, "m": 10}
+        {"mode": "(5.12)^2-x^2", "a": -5.11, "b": 5.12, "m": 10, "low": 0, "high": 26.2144}
     ),
     "f=(5.12)^4-x^4": FitnessFunctionConfig(
-        "f=(5.12)^4-x^4", generators.NormalGenerator, "full", 10, fitness_functions.FX,
+        "f=(5.12)^4-x^4", generators.RealGenerator, "full", 10, fitness_functions.FX,
         utils.encode(0, -5.11, 5.12, 10),
-        {"mode": "(5.12)^4-x^4", "a": -5.11, "b": 5.12, "m": 10}
+        {"mode": "(5.12)^4-x^4", "a": -5.11, "b": 5.12, "m": 10, "low": 0, "high": 687.19476736}
     ),
-    "f=e^(0.25*x)": FitnessFunctionConfig(
-        "f=e^(0.25*x)", generators.NormalGenerator, "full", 10, fitness_functions.FECX,
-        utils.encode(10.23, 0, 10.23, 10),
-        {"c": 0.25, "a": 0, "b": 10.23, "m": 10}
-    ),
-    "f=e^(1*x)": FitnessFunctionConfig(
-        "f=e^(1*x)", generators.NormalGenerator, "full", 10, fitness_functions.FECX, utils.encode(10.23, 0, 10.23, 10),
-        {"c": 1.0, "a": 0, "b": 10.23, "m": 10}
-    ),
-    "f=e^(2*x)": FitnessFunctionConfig(
-        "f=e^(2*x)", generators.NormalGenerator, "full", 10, fitness_functions.FECX, utils.encode(10.23, 0, 10.23, 10),
-        {"c": 2.0, "a": 0, "b": 10.23, "m": 10}
-    ),
+    # "f=e^(0.25*x)": FitnessFunctionConfig(
+    #     "f=e^(0.25*x)", generators.NormalGenerator, "full", 10, fitness_functions.FECX,
+    #     utils.encode(10.23, 0, 10.23, 10),
+    #     {"c": 0.25, "a": 0, "b": 10.23, "m": 10}
+    # ),
+    # "f=e^(1*x)": FitnessFunctionConfig(
+    #     "f=e^(1*x)", generators.NormalGenerator, "full", 10, fitness_functions.FECX, utils.encode(10.23, 0, 10.23, 10),
+    #     {"c": 1.0, "a": 0, "b": 10.23, "m": 10}
+    # ),
+    # "f=e^(2*x)": FitnessFunctionConfig(
+    #     "f=e^(2*x)", generators.NormalGenerator, "full", 10, fitness_functions.FECX, utils.encode(10.23, 0, 10.23, 10),
+    #     {"c": 2.0, "a": 0, "b": 10.23, "m": 10}
+    # ),
     "fh | mutated": FitnessFunctionConfig(
         "fh | mutated", generators.NormalGenerator, "full", 100, fitness_functions.FH,
         "0" * 100, {}, 0.0000672757925523407 * MUTATION_COEFF, EARLY_STOPPING
     ),
-    # "fhd | mutated": FitnessFunctionConfig(
-    #     "fhd | mutated", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100,
-    #     {}, 0.0000660220531651611 * MUTATION_COEFF, EARLY_STOPPING
-    # ),
     "fhd(theta=10) | mutated": FitnessFunctionConfig(
         "fhd(theta=10) | mutated", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100,
         {"theta": 10}, 0.0000660220531651611 * MUTATION_COEFF, EARLY_STOPPING
     ),
     "f=x^2 | mutated": FitnessFunctionConfig(
-        "f=x^2 | mutated", generators.NormalGenerator, "full", 10, fitness_functions.FX,
+        "f=x^2 | mutated", generators.RealGenerator, "full", 10, fitness_functions.FX,
         utils.encode(10.23, 0, 10.23, 10),
-        {"mode": "x^2", "a": 0, "b": 10.23, "m": 10}, 0.00107915462143049 * MUTATION_COEFF, EARLY_STOPPING
+        {"mode": "x^2", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 104.6529},
+        0.00107915462143049 * MUTATION_COEFF, EARLY_STOPPING
     ),
     "f=(5.12)^2-x^2 | mutated": FitnessFunctionConfig(
-        "f=(5.12)^2-x^2 | mutated", generators.NormalGenerator, "full", 10, fitness_functions.FX,
+        "f=(5.12)^2-x^2 | mutated", generators.RealGenerator, "full", 10, fitness_functions.FX,
         utils.encode(0, -5.11, 5.12, 10),
-        {"mode": "(5.12)^2-x^2", "a": -5.11, "b": 5.12, "m": 10}, 0.00107915462143049 * MUTATION_COEFF, EARLY_STOPPING
+        {"mode": "(5.12)^2-x^2", "a": -5.11, "b": 5.12, "m": 10, "low": 0, "high": 26.2144},
+        0.00107915462143049 * MUTATION_COEFF, EARLY_STOPPING
     ),
 }
 

@@ -15,7 +15,7 @@ class BaseGenerator:
     """
 
     def __init__(
-            self, *, n: int, length: int, optimal: str, generate_optimal: bool = False
+            self, *, n: int, length: int, optimal: str, generate_optimal: bool = False, **kwargs
     ):
         """
         Initialize population generator
@@ -54,20 +54,19 @@ class BaseGenerator:
         self._optimal = value
 
     @abc.abstractmethod
-    def generate_optimal_individual(self) -> str:
-        """
-        Generates optimal individual.
-        :return: Individual as string of bits (e.g. 10101011)
-        """
-        pass
-
-    @abc.abstractmethod
     def generate_individual(self) -> str:
         """
         Generates individual.
         :return: Individual as string of bits (e.g. 10101011)
         """
         pass
+
+    def generate_optimal_individual(self) -> str:
+        """
+        Generates optimal individual.
+        :return: Individual as string of bits (e.g. 10101011)
+        """
+        return self._optimal
 
     def generate_population(self) -> typing.List[str]:
         """
