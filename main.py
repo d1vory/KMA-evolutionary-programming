@@ -1,5 +1,4 @@
 # TODO:
-# -2. upgrade parallelization
 # -1. command line args
 # 0. comments
 # 1. Logging
@@ -9,9 +8,9 @@ from core import evaluator_config, report_builder, evaluator
 
 
 def main():
-    working_dir = "reports"
+    working_dir = "1000_reports"
 
-    n_vals = [100]  # [100, 1000]
+    n_vals = [1000]  # [100, 1000]
     # epochs = 10
     # max_iteration = 10_000_000
     # beta = [1.2, 1.6, 2.0]
@@ -23,7 +22,8 @@ def main():
     #                'f=(5.12)^2-x^2 | mutated']
     # fitness_fns = ['fconst', 'fh', 'fhd(theta=10)', 'fhd(theta=150)', 'f=x^2', 'f=x', 'f=x^4',
     #                'f=(5.12)^2-x^2', 'f=(5.12)^4-x^4']
-    fitness_fns = ['f=x^2 | mutated']
+    fitness_fns = ['fh | mutated', 'fhd(theta=10) | mutated', 'f=(5.12)^2-x^2 | mutated']
+    # fitness_fns = ['f=x^2 | mutated']
     evaluator.Evaluator(
         evaluator_config.get_config(n_vals=n_vals, writing_dir=working_dir, fitness_fns=fitness_fns)
     ).evaluate()
