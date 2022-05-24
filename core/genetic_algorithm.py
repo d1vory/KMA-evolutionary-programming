@@ -386,7 +386,7 @@ class GeneticAlgorithm:
         msg = f"Finished at Iteration #{self._iteration}. Total score: {total_score}. " \
               f"Convergence: {self._convergence_iteration}"
         logging.info(msg)
-        print(msg)
+        # print(msg)
 
         if self._draw_step:
             utils.draw_hist(self._population.fitness_arr, msg, "Scores", "Number of Individuals")
