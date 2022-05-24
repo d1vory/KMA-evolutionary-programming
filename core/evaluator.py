@@ -21,64 +21,75 @@ class Evaluator:
         with open(self._writing_dir / f'{name}.json', 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
-    def _evaluate_experiment(
-            self, fitness_fn: evaluator_config.FitnessFunctionConfig, n: int, epochs: int, max_iteration: int
+    def run_epoch(
+            self, epoch: int, n: int, max_iteration: int, fitness_fn: evaluator_config.FitnessFunctionConfig
     ):
-        report_data = []
-
         fn = fitness_fn.handler(**fitness_fn.values)
         stats_mode = fitness_fn.stats_mode
         length = fitness_fn.length
 
-        for epoch in range(epochs):
-            optimal = True
+        optimal = True
+        if fitness_fn.mutation_rate is not None and epoch >= 5:  # epochs from 0
+            optimal = False
 
-            if fitness_fn.mutation_rate is not None and epoch >= 5:  # epochs from 0
-                optimal = False
+        generator = fitness_fn.generator(
+            n=n,
+            length=length,
+            optimal=fitness_fn.optimal,
+            generate_optimal=optimal,
+            fitness_fn=fn,
+            low_range=fitness_fn.values.get("low"),
+            high_range=fitness_fn.values.get("high"),
+        )
+        run_data = {}
 
-            generator = fitness_fn.generator(
-                n=n,
-                length=length,
-                optimal=fitness_fn.optimal,
-                generate_optimal=optimal,
-                fitness_fn=fn,
-                low_range=fitness_fn.values.get("low"),
-                high_range=fitness_fn.values.get("high"),
+        population = generator.generate_population()
+
+        for selection_fn in self._config.selection_fns:
+            print(
+                f"Fitting GA: epoch={epoch}, n={n}, fitness={fitness_fn.name}, "
+                f"linear(beta={selection_fn.beta}, modified={selection_fn.modified})"
             )
-            run_data = {}
+            selection_fn_name = f"{selection_fn.beta}${selection_fn.modified}"
 
-            population = generator.generate_population()
+            graphics_dir = self._graphics_dir / fitness_fn.name / str(n) / selection_fn_name / str(epoch)
+            graphics_dir.mkdir(parents=True, exist_ok=True)
 
-            for selection_fn in self._config.selection_fns:
-                print(
-                    f"Fitting GA: epoch={epoch}, n={n}, fitness={fitness_fn.name}, "
-                    f"linear(beta={selection_fn.beta}, modified={selection_fn.modified})"
-                )
-                selection_fn_name = f"{selection_fn.beta}${selection_fn.modified}"
+            algo = genetic_algorithm.GeneticAlgorithm(
+                base_population=population,
+                fitness_function=fn,
+                scale_function=scale_functions.LinearRank(selection_fn.beta, n),
+                selection_algo=selection_algorithms.my_sus,
+                optimal=fitness_fn.optimal,
+                stats_mode=stats_mode,
+                modified_selection_algo=selection_fn.modified,
+                max_iteration=max_iteration,
+                mutation_rate=fitness_fn.mutation_rate,
+                early_stopping=fitness_fn.early_stopping,
+                draw_step=None,
+                draw_total_steps=False,
+                graphics_dir=str(graphics_dir)
+            )
+            algo.fit()
 
-                graphics_dir = self._graphics_dir / fitness_fn.name / str(n) / selection_fn_name / str(epoch)
-                graphics_dir.mkdir(parents=True, exist_ok=True)
+            run_data[selection_fn_name] = algo.stats
 
-                algo = genetic_algorithm.GeneticAlgorithm(
-                    base_population=population,
-                    fitness_function=fn,
-                    scale_function=scale_functions.LinearRank(selection_fn.beta, n),
-                    selection_algo=selection_algorithms.my_sus,
-                    optimal=fitness_fn.optimal,
-                    stats_mode=stats_mode,
-                    modified_selection_algo=selection_fn.modified,
-                    max_iteration=max_iteration,
-                    mutation_rate=fitness_fn.mutation_rate,
-                    early_stopping=fitness_fn.early_stopping,
-                    draw_step=None,
-                    draw_total_steps=False,
-                    graphics_dir=str(graphics_dir)
-                )
-                algo.fit()
+        return run_data
 
-                run_data[selection_fn_name] = algo.stats
+    def evaluate_experiment(
+            self, epochs: int, n: int, max_iteration: int, fitness_fn: evaluator_config.FitnessFunctionConfig
+    ):
+        fn = fitness_fn.handler(**fitness_fn.values)
+        stats_mode = fitness_fn.stats_mode
+        length = fitness_fn.length
 
-            report_data.append(run_data)
+        report_data = []
+
+        with multiprocessing.Pool(self._cpu_count) as p:
+            for result in p.imap(functools.partial(
+                    self.run_epoch, n=n, max_iteration=max_iteration, fitness_fn=fitness_fn
+            ), range(epochs)):
+                report_data.append(result)
 
         report_meta = {
             "n": n,
@@ -106,13 +117,8 @@ class Evaluator:
         max_iteration = self._config.max_iteration
 
         for n in self._config.n_vals:
-            with multiprocessing.Pool(self._cpu_count) as p:
-                p.map(
-                    functools.partial(
-                        self._evaluate_experiment, n=n, epochs=epochs, max_iteration=max_iteration
-                    ),
-                    self._config.fitness_fns
-                )
+            for fitness_fn in self._config.fitness_fns:
+                self.evaluate_experiment(epochs, n, max_iteration, fitness_fn)
 
 
 if __name__ == "__main__":
