@@ -118,7 +118,10 @@ class GeneticAlgorithm:
             self._stats["s_max"] = selection_difference
             self._stats["NI_s_max"] = self._iteration
 
-        selection_intensity = selection_difference / previous_population.std_score
+        if previous_population.std_score == 0:
+            selection_intensity = 0
+        else:
+            selection_intensity = selection_difference / previous_population.std_score
         self._selection_intensities.append(selection_intensity)
 
         if selection_intensity < self._stats.get("I_min", math.inf):
@@ -367,7 +370,7 @@ class GeneticAlgorithm:
             if self._mutation_rate is not None:
                 previous_population = self._populations[-1]
 
-                if self._population.avg_score - previous_population.avg_score <= 0.0001:
+                if self._population.avg_score - previous_population.avg_score <= 0.0001:  # x^2 = 0.01, other = 0.0001
                     self._early_stopping_iteration += 1
                 else:
                     self._early_stopping_iteration = 0
