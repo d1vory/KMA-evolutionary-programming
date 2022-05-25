@@ -41,7 +41,7 @@ class ReportBuilder:
 
         self._writer = xlsx.XLSX(
             str(self._writing_dir / f"report_{datetime.datetime.now().isoformat()}.xlsx"),
-            "EP Report Sheet"
+            "N=100"
         )
 
         self._default_skip_rows_after_report = 7
@@ -65,6 +65,8 @@ class ReportBuilder:
         stats_keys = NOISE_STATS_KEYS if stats_mode == "noise" else FULL_STATS_KEYS
         total_stats_keys = NOISE_TOTAL_STATS_KEYS if stats_mode == "noise" else FULL_TOTAL_STATS_KEYS
         selection_fns = list(itertools.product(selection_fns["beta"], selection_fns["modified"]))
+
+        self._writer.sheet(f"N={n}")
 
         self._writer.text(
             f"{fitness_fn}, n={n}, length={length}, max_iteration={max_iteration}, fitness_params={fitness_fn_values}",

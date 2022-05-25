@@ -129,7 +129,7 @@ class XLSX:
         self._log("info", "Workbook successfully saved.", {"filename": filename})
 
     def sheet(
-            self, sheet_name: str, current_row: int = 1, current_col: int = 1
+            self, sheet_name: str, current_row: int = None, current_col: int = None
     ):
         """
         Switch to another sheet and save current positions
@@ -141,6 +141,15 @@ class XLSX:
         self._sheets[self._current_sheet] = (self._current_row, self._current_col)
 
         self._current_sheet = sheet_name
+
+        if sheet_name in self._sheets:
+            previous_row, previous_col = self._sheets[sheet_name]
+        else:
+            previous_row, previous_col = 1, 1
+
+        current_row = current_row or previous_row
+        current_col = current_col or previous_col
+
         self._current_row, self._current_col = (current_row, current_col)
 
         if sheet_name in self._workbook.sheetnames:
@@ -170,8 +179,8 @@ class XLSX:
         :param col: column number
         :return: None
         """
-        self._current_row = row if row is not None else self._current_row
-        self._current_col = col if col is not None else self._current_col
+        self._current_row = row or self._current_row
+        self._current_col = col or self._current_col
 
     def text(
             self, title, row=None, col=None,
@@ -195,7 +204,7 @@ class XLSX:
 
         col = col or self._current_col
 
-        required_cells = len(title) // self._font_size
+        required_cells = (len(title) + 20) // self._font_size
 
         end_col = col + required_cells
 
