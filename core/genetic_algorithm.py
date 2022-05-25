@@ -357,7 +357,8 @@ class GeneticAlgorithm:
 
             msg = f"Iteration #{self._iteration}. Total score: {total_score}"
             logging.info(msg)
-            # print(msg)
+            if self._iteration > 0 and self._iteration % 1000 == 0:
+                print(msg)
 
             if self._draw_step and self._iteration % self._draw_step == 0:
                 utils.draw_hist(self._population.fitness_arr, msg, "Scores", "Number of Individuals")
