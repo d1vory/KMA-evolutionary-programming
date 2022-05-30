@@ -315,7 +315,7 @@ class GeneticAlgorithm:
             if self._modified_selection_algo:
                 r = [i]
                 while j < len(self._population):
-                    if self._population.individuals[j] == self._population.individuals[i]:
+                    if self._population.individuals[j].fitness == self._population.individuals[i].fitness:
                         r.append(j)
                     else:
                         break
