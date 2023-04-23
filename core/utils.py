@@ -78,6 +78,16 @@ def encode(x, a, b, m):
     return get_bin(x, m)
 
 
+def decode_binary(x, a, b, m):
+    x = get_dec(x)
+    return decode_sampling(a, b, x, m)
+
+
+def encode_binary(x, a, b, m):
+    x = int(encode_sampling(a, b, x, m))
+    return get_bin(x, m)
+
+
 def aggregate_runs_data(
         runs_data: list, stats_mode: str, optimal: str, fitness_fn
 ) -> dict:

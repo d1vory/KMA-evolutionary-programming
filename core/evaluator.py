@@ -50,7 +50,7 @@ class Evaluator:
                 f"Fitting GA: epoch={epoch}, n={n}, fitness={fitness_fn.name}, "
                 f"linearScaling(A={selection_fn.a}, B={selection_fn.b})"
             )
-            selection_fn_name = f"{selection_fn.a}${selection_fn.b}"
+            selection_fn_name = f"a={selection_fn.a}$b={selection_fn.b}"
 
             graphics_dir = self._graphics_dir / fitness_fn.name / str(n) / selection_fn_name / str(epoch)
             graphics_dir.mkdir(parents=True, exist_ok=True)

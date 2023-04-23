@@ -184,6 +184,7 @@ class GeneticAlgorithm:
 
         # graphics data
         self._graphics_data["avg_score"].append(current_population.avg_score)
+        self._graphics_data["best_score"].append(current_population.best_score)
         self._graphics_data["intensity"].append(selection_intensity)
         self._graphics_data["difference"].append(selection_difference)
         self._graphics_data["std_score"].append(current_population.std_score)
@@ -251,12 +252,16 @@ class GeneticAlgorithm:
             filename=f"{self._graphics_dir}/avg_score.png"
         )
         utils.draw_graphics(
-            self._graphics_data["intensity"], "INTENSITY", "N generation", "Intensity",
-            filename=f"{self._graphics_dir}/intensity.png"
+            self._graphics_data["best_score"], "BEST FITNESS", "N generation", "Best fitness",
+            filename=f"{self._graphics_dir}/best_score.png"
         )
         utils.draw_graphics(
-            self._graphics_data["difference"], "DIFFERENCE", "N generation", "Difference",
-            filename=f"{self._graphics_dir}/difference.png"
+            self._graphics_data["intensity"], "SELECTION INTENSITY", "N generation", "Intensity",
+            filename=f"{self._graphics_dir}/selection_intensity.png"
+        )
+        utils.draw_graphics(
+            self._graphics_data["difference"], "SELECTION DIFFERENCE", "N generation", "Difference",
+            filename=f"{self._graphics_dir}/selection_difference.png"
         )
         utils.draw_graphics(
             self._graphics_data["std_score"], "STANDARD DEVIATION", "N generation", "Std",
@@ -268,7 +273,7 @@ class GeneticAlgorithm:
             filename=f"{self._graphics_dir}/intensity_difference.png"
         )
         utils.draw_graphics(
-            self._graphics_data["best_part"], "BEST PARTITION", "N generation", "Best part",
+            self._graphics_data["best_part"], "COPIES OF BEST", "N generation", "Num of copies",
             filename=f"{self._graphics_dir}/best_count.png"
         )
         utils.draw_graphics(
@@ -290,9 +295,8 @@ class GeneticAlgorithm:
             for gene_index in range(self._individual_len):
                 if random.random() < self._mutation_rate:
                     changed = True
-                    genotype = list(individual.genotype)
-                    genotype[gene_index] = "1" if genotype[gene_index] == "0" else "0"
-                    individual.genotype = "".join(genotype)
+                    new_val = "1" if individual.genotype[gene_index] == "0" else "0"
+                    individual.genotype = individual.genotype[:gene_index] + new_val + individual.genotype[gene_index + 1:]
 
             if changed:
                 population_changed = True

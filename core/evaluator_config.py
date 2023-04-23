@@ -9,7 +9,8 @@ import models
 WRITING_DIR_DEFAULT = '../reports'
 #N_DEFAULT_VALUES = [100, 1000]
 N_DEFAULT_VALUES = [100]
-MAX_ITERATION_DEFAULT = 10_000_000
+#MAX_ITERATION_DEFAULT = 10_000_000
+MAX_ITERATION_DEFAULT = 100_000
 EPOCHS_DEFAULT = 10
 #BETA_DEFAULT_VALUES = [1.2, 1.6, 2.0]
 #BETA_DEFAULT_VALUES = [1.2]
@@ -18,10 +19,10 @@ EPOCHS_DEFAULT = 10
 # A_VALUES = [1, 1, 2, 2]
 # B_VALUES = [1, -1, 1, -1]
 
-#AB_VALUES = [(1,1), (1,-1), (2,1), (2,-1)]
-AB_VALUES = [(1, 1)]
+AB_VALUES = [(1,1), (1,-1), (2,1), (2,-1)]
+#AB_VALUES = [(1, 1)]
 
-
+MUTATION_RATE=0.00001
 
 @dataclass
 class SelectionFunctionConfig:
@@ -37,10 +38,11 @@ class FitnessFunctionConfig:
     length: int
     handler: type(models.Function)
     optimal: str
-    use_crossingover: bool
     values: dict = field(default_factory=dict)
     mutation_rate: float = None
     early_stopping: int = None
+    use_crossingover: bool = False
+
 
 
 @dataclass
@@ -56,23 +58,176 @@ class EvaluatorConfig:
 EARLY_STOPPING = 10
 MUTATION_COEFF = 1
 FITNESS_FN_TABLE = {
-    # "fconst": FitnessFunctionConfig(
-    #     "fconst", generators.ConstGenerator, "noise", 100, fitness_functions.FConst, "1" * 100, {}
-    # ),
-    # "fh": FitnessFunctionConfig("fh", generators.NormalGenerator, "full", 100, fitness_functions.FH, "0" * 100, {}),
-    # "fhd(theta=10)": FitnessFunctionConfig(
-    #     "fhd(theta=10)", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {"theta": 10}
-    # ),
-    # "fhd(theta=50)": FitnessFunctionConfig(
-    #     "fhd(theta=50)", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {"theta": 50}
-    # ),
-    # "fhd(theta=100)": FitnessFunctionConfig(
-    #     "fhd(theta=100)", generators.NormalGenerator, "full", 100, fitness_functions.FHD, "0" * 100, {"theta": 100}
-    # ),
-    # "f=x^2": FitnessFunctionConfig(
-    #     "f=x^2", generators.RealGenerator, "full", 10, fitness_functions.FX, utils.encode(10.23, 0, 10.23, 10),
-    #     {"mode": "x^2", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 104.6529}
-    # ),
+    "fconst__no_mut__no_cross": FitnessFunctionConfig(
+        name="fconst__no_mut__no_cross",
+        generator=generators.ConstGenerator,
+        stats_mode="noise",
+        length=100,
+        handler=fitness_functions.FConst,
+        optimal="1" * 100,
+        values={}
+    ),
+    "fconst__mut__no_cross": FitnessFunctionConfig(
+        name="fconst__mut__no_cross",
+        generator=generators.ConstGenerator,
+        stats_mode="noise",
+        length=100,
+        handler=fitness_functions.FConst,
+        optimal="1" * 100,
+        values={},
+        mutation_rate=MUTATION_RATE
+    ),
+    "fconst__no_mut__cross": FitnessFunctionConfig(
+        name="fconst__no_mut__cross",
+        generator=generators.ConstGenerator,
+        stats_mode="noise",
+        length=100,
+        handler=fitness_functions.FConst,
+        optimal="1" * 100,
+        values={},
+        use_crossingover=True
+    ),
+    "fconst__mut__cross": FitnessFunctionConfig(
+        name="fconst__mut__cross",
+        generator=generators.ConstGenerator,
+        stats_mode="noise",
+        length=100,
+        handler=fitness_functions.FConst,
+        optimal="1" * 100,
+        values={},
+        mutation_rate=MUTATION_RATE,
+        use_crossingover=True
+    ),
+####################################################################################################################################
+    "fhd(theta=100)__no_mut__no_cross": FitnessFunctionConfig(
+        name="fhd(theta=100)__no_mut__no_cross",
+        generator=generators.NormalGenerator,
+        stats_mode="full",
+        length=100,
+        handler=fitness_functions.FHD,
+        optimal="0" * 100,
+        values={"theta": 100}
+    ),
+    "fhd(theta=100)__no_mut__cross": FitnessFunctionConfig(
+        name="fhd(theta=100)__no_mut__cross",
+        generator=generators.NormalGenerator,
+        stats_mode="full",
+        length=100,
+        handler=fitness_functions.FHD,
+        optimal="0" * 100,
+        values={"theta": 100},
+        use_crossingover=True
+    ),
+
+    "fhd(theta=100)__mut__no_cross": FitnessFunctionConfig(
+        name="fhd(theta=100)__mut__no_cross",
+        generator=generators.NormalGenerator,
+        stats_mode="full",
+        length=100,
+        handler=fitness_functions.FHD,
+        optimal="0" * 100,
+        values={"theta": 100},
+        early_stopping=EARLY_STOPPING,
+        mutation_rate=MUTATION_RATE,
+    ),
+    "fhd(theta=100)__mut__cross": FitnessFunctionConfig(
+        name="fhd(theta=100)__mut__cross",
+        generator=generators.NormalGenerator,
+        stats_mode="full",
+        length=100,
+        handler=fitness_functions.FHD,
+        optimal="0" * 100,
+        values={"theta": 100},
+        mutation_rate=MUTATION_RATE,
+        early_stopping=EARLY_STOPPING,
+        use_crossingover=True
+    ),
+    #######
+    "f=x^2__no_mut__no_cross": FitnessFunctionConfig(
+        name="f=x^2__no_mut__no_cross",
+        generator=generators.RealGenerator,
+        stats_mode="full",
+        length=10,
+        handler=fitness_functions.FX,
+        optimal=utils.encode(x=10.23, a=0, b=10.23, m=10),
+        values={"mode": "x^2", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 104.6529},
+    ),
+    "f=x^2__no_mut__cross": FitnessFunctionConfig(
+        name="f=x^2__no_mut__cross",
+        generator=generators.RealGenerator,
+        stats_mode="full",
+        length=10,
+        handler=fitness_functions.FX,
+        optimal=utils.encode(x=10.23, a=0, b=10.23, m=10),
+        values={"mode": "x^2", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 104.6529},
+        use_crossingover=True
+    ),
+    "f=x^2__mut__no_cross": FitnessFunctionConfig(
+        name="f=x^2__mut__no_cross",
+        generator=generators.RealGenerator,
+        stats_mode="full",
+        length=10,
+        handler=fitness_functions.FX,
+        optimal=utils.encode(x=10.23, a=0, b=10.23, m=10),
+        values={"mode": "x^2", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 104.6529},
+        mutation_rate=MUTATION_RATE,
+        early_stopping=EARLY_STOPPING
+    ),
+    "f=x^2__mut__cross": FitnessFunctionConfig(
+        name="f=x^2__mut__cross",
+        generator=generators.RealGenerator,
+        stats_mode="full",
+        length=10,
+        handler=fitness_functions.FX,
+        optimal=utils.encode(x=10.23, a=0, b=10.23, m=10),
+        values={"mode": "x^2", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 104.6529},
+        mutation_rate=MUTATION_RATE,
+        early_stopping=EARLY_STOPPING,
+        use_crossingover=True
+    ),
+
+    "f=(5.12)^2-x^2__no_mut__no_cross": FitnessFunctionConfig(
+        name="f=(5.12)^2-x^2__no_mut__no_cross",
+        generator=generators.RealGenerator,
+        stats_mode="full",
+        length=10,
+        handler=fitness_functions.FX,
+        optimal=utils.encode(0, -5.11, 5.12, 10),
+        values={"mode": "(5.12)^2-x^2", "a": -5.11, "b": 5.12, "m": 10, "low": 0, "high": 26.2144}
+    ),
+    "f=(5.12)^2-x^2__no_mut__cross": FitnessFunctionConfig(
+        name="f=(5.12)^2-x^2__no_mut__cross",
+        generator=generators.RealGenerator,
+        stats_mode="full",
+        length=10,
+        handler=fitness_functions.FX,
+        optimal=utils.encode(0, -5.11, 5.12, 10),
+        values={"mode": "(5.12)^2-x^2", "a": -5.11, "b": 5.12, "m": 10, "low": 0, "high": 26.2144},
+        use_crossingover=True
+    ),
+    "f=(5.12)^2-x^2__mut__no_cross": FitnessFunctionConfig(
+        name="f=(5.12)^2-x^2__mut__no_cross",
+        generator=generators.RealGenerator,
+        stats_mode="full",
+        length=10,
+        handler=fitness_functions.FX,
+        optimal=utils.encode(0, -5.11, 5.12, 10),
+        values={"mode": "(5.12)^2-x^2", "a": -5.11, "b": 5.12, "m": 10, "low": 0, "high": 26.2144},
+        mutation_rate=MUTATION_RATE,
+        early_stopping=EARLY_STOPPING
+    ),
+    "f=(5.12)^2-x^2__mut__cross": FitnessFunctionConfig(
+        name="f=(5.12)^2-x^2__mut__cross",
+        generator=generators.RealGenerator,
+        stats_mode="full",
+        length=10,
+        handler=fitness_functions.FX,
+        optimal=utils.encode(0, -5.11, 5.12, 10),
+        values={"mode": "(5.12)^2-x^2", "a": -5.12, "b": 5.12, "m": 10, "low": 0, "high": 26.2144},
+        mutation_rate=MUTATION_RATE,
+        early_stopping=EARLY_STOPPING,
+        use_crossingover=True
+    ),
     # "f=x": FitnessFunctionConfig(
     #     "f=x", generators.RealGenerator, "full", 10, fitness_functions.FX, utils.encode(10.23, 0, 10.23, 10),
     #     {"mode": "x", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 10.23}
@@ -123,19 +278,19 @@ FITNESS_FN_TABLE = {
     #     # 0.0000660220531651611 * MUTATION_COEFF, # n=100
     #     EARLY_STOPPING
     # ),
-    "f=x^2___mutated": FitnessFunctionConfig(
-        name="f=x^2___mutated",
-        generator=generators.RealGenerator,
-        stats_mode="full",
-        length=10,
-        handler=fitness_functions.FX,
-        optimal=utils.encode(x=10.23, a=0, b=10.23, m=10),
-        use_crossingover=True,
-        values={"mode": "x^2", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 104.6529},
-        mutation_rate=0.000148257805588131 * MUTATION_COEFF,  # n=1000
-        # 0.00107915462143049 * MUTATION_COEFF,  # n=100
-        early_stopping=EARLY_STOPPING
-    ),
+    # "f=x^2___mutated": FitnessFunctionConfig(
+    #     name="f=x^2___mutated",
+    #     generator=generators.RealGenerator,
+    #     stats_mode="full",
+    #     length=10,
+    #     handler=fitness_functions.FX,
+    #     optimal=utils.encode(x=10.23, a=0, b=10.23, m=10),
+    #     use_crossingover=True,
+    #     values={"mode": "x^2", "a": 0, "b": 10.23, "m": 10, "low": 0, "high": 104.6529},
+    #     mutation_rate=0.000148257805588131 * MUTATION_COEFF,  # n=1000
+    #     # 0.00107915462143049 * MUTATION_COEFF,  # n=100
+    #     early_stopping=EARLY_STOPPING
+    # ),
     # "f=(5.12)^2-x^2 | mutated": FitnessFunctionConfig(
     #     "f=(5.12)^2-x^2 | mutated", generators.RealGenerator, "full", 10, fitness_functions.FX,
     #     utils.encode(0, -5.11, 5.12, 10),

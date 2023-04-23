@@ -3,6 +3,7 @@ import random
 import typing
 
 import models
+import numpy as np
 
 
 def rws(
@@ -19,6 +20,15 @@ def rws(
         keep.append(copy.copy(population.individuals[i]))
     return models.Population(keep)
 
+def my_rws(population: models.Population):
+    try:
+        probabilities = [chromosome.scaled_fitness / population.scaled_fitness for chromosome in population.individuals]
+        keep = [np.random.choice(population.individuals, p=probabilities) for _ in range(0, len(population))]
+    except:
+        kijh = 2+2
+        print('asd')
+    kek = models.Population(keep)
+    return kek
 
 def my_sus(population: models.Population) -> models.Population:
     f = population.scaled_fitness  # sum of all probabilities = 1

@@ -34,6 +34,10 @@ class Population:
         return self._avg_score
 
     @property
+    def best_score(self) -> float:
+        return np.max(self.fitness_arr)
+
+    @property
     def std_score(self) -> float:
         if self._std_score is None:
             self._std_score = np.std(self.fitness_arr)

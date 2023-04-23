@@ -22,4 +22,5 @@ class LinearScaling(models.Function):
         self._b = b
 
     def _f(self, arg):
-        return self._a * arg + self._b
+        res = self._a * arg + self._b
+        return res if res > 0 else 0

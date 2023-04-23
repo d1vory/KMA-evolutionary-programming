@@ -87,7 +87,7 @@ class ReportBuilder:
 
                 for a, b in selection_fns:
                     try:
-                        lst.append(data[epoch][f"{a}${b}"][stat])
+                        lst.append(data[epoch][f"a={a}$b={b}"][stat])
                     except KeyError:
                         lst.append("NaN")
 
@@ -102,7 +102,7 @@ class ReportBuilder:
 
             for a, b in selection_fns:
                 try:
-                    lst.append(total_data[f"{a}${b}"][stat])
+                    lst.append(total_data[f"a={a}$b={b}"][stat])
                 except KeyError:
                     lst.append("")
 
