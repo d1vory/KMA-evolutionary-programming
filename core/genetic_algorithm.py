@@ -10,6 +10,7 @@ import numpy as np
 
 import models
 from core import fitness_functions, utils
+from core.fitness_functions import FConst
 
 
 class GeneticAlgorithm:
@@ -22,6 +23,7 @@ class GeneticAlgorithm:
                 [models.Population], models.Population
             ],
             optimal: str,
+            use_crossingover: bool,
             modified_selection_algo: bool = False,
             stats_mode: str = "full",
             max_iteration: int = 10_000_000,
@@ -29,8 +31,9 @@ class GeneticAlgorithm:
             early_stopping: typing.Union[None, int] = None,
             draw_step: typing.Union[None, int] = None,
             draw_total_steps: bool = False,
-            graphics_dir: str = None
+            graphics_dir: str = None,
     ):
+        self.use_crossingover = use_crossingover
         self._base_population: typing.List[str] = base_population
 
         self._fitness_function: fitness_functions.FitnessFunction = fitness_function
@@ -307,29 +310,10 @@ class GeneticAlgorithm:
 
         return models.Population(individuals)
 
-    def _calculate_ranks(self):
-        i = 0
-        while i < len(self._population):
-            j = i + 1
 
-            if self._modified_selection_algo:
-                r = [i]
-                while j < len(self._population):
-                    if self._population.individuals[j].fitness == self._population.individuals[i].fitness:
-                        r.append(j)
-                    else:
-                        break
-
-                    j += 1
-
-                rank = np.mean(r)
-            else:
-                rank = i
-
-            while i < j:
-                self._population.individuals[i].rank = self._scale_function(rank)
-
-                i += 1
+    def _calculate_scaled_fitness(self):
+        for individual in self._population.individuals:
+            individual.scaled_fitness = self._scale_function(individual.fitness)
 
     def fit(self):
         logging.info("Starting fitting")
@@ -366,9 +350,17 @@ class GeneticAlgorithm:
             if self._graphics_dir and self._iteration < 5:
                 self._draw_hists(self._iteration)
 
-            self._calculate_ranks()
+            self._calculate_scaled_fitness()
             self._population = self._selection_algo(self._population)
+            if self.use_crossingover:
+                self._population = self.apply_crossingover()
+
             if self._mutation_rate is not None:
+                if isinstance(self._fitness_function, FConst) and self.population.homogenity():
+                    logging.info(
+                        f"Early stopping on I#{self._iteration} after {self._early_stopping_iteration} iterations, homogenity achieved"
+                    )
+                    break
                 previous_population = self._populations[-1]
 
                 if self._population.avg_score - previous_population.avg_score <= 0.0001:  # x^2 = 0.01, other = 0.0001
@@ -405,3 +397,32 @@ class GeneticAlgorithm:
         if self._graphics_dir:
             self._draw_hists()
             self._draw_graphics()
+
+    def _crossingover(self, parent1: models.Individual, parent2: models.Individual):
+        a, b = parent1.genotype, parent2.genotype
+        point = random.randint(0, len(a) - 1)
+        child1_genotype = a[:point + 1] + b[point + 1:]
+        child1_fitness = self._fitness_function(child1_genotype)
+        child1 = models.Individual(child1_genotype, child1_fitness)
+
+        # child2_genotype = b[:point + 1] + a[point + 1:]
+        # child2_fitness = self._fitness_function(child2_genotype)
+        # child2 = models.Individual(child2_genotype, child2_fitness)
+        # return child1, child2
+        return child1
+
+    def apply_crossingover(self):
+        new_population = []
+        population_length = len(self._population)
+        for i in range(population_length):
+            index_1 = random.randint(0, population_length - 1)
+            index_2 = random.randint(0, population_length - 1)
+            while index_1 == index_2:
+                index_2 = random.randint(0, population_length - 1)
+
+            parent1 = self._population.individuals[index_1]
+            parent2 = self._population.individuals[index_2]
+
+            child = self._crossingover(parent1, parent2)
+            new_population.append(child)
+        return models.Population(new_population)

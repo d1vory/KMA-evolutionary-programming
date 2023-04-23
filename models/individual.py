@@ -2,10 +2,10 @@ import typing
 
 
 class Individual:
-    def __init__(self, genotype: str, fitness: float, rank: typing.Union[float, None] = None):
+    def __init__(self, genotype: str, fitness: float, scaled_fitness: float | None = None):
         self._genotype: str = genotype
         self._fitness: float = fitness
-        self._rank: float = rank
+        self._scaled_fitness: float = scaled_fitness
 
     @property
     def genotype(self) -> str:
@@ -24,21 +24,21 @@ class Individual:
         self._fitness = value
 
     @property
-    def rank(self) -> float:
-        if self._rank is None:
+    def scaled_fitness(self) -> float:
+        if self._scaled_fitness is None:
             return self._fitness
 
-        return self._rank
+        return self._scaled_fitness
 
-    @rank.setter
-    def rank(self, value: float):
-        self._rank = value
+    @scaled_fitness.setter
+    def scaled_fitness(self, value: float):
+        self._scaled_fitness = value
 
     def is_zero(self):
         return list(set(self._genotype)) == ["0"]
 
     def __repr__(self):
-        return f"Individual(genotype='{self._genotype}', fitness={self._fitness:.2f}, rank={self._rank:.2f})"
+        return f"Individual(genotype='{self._genotype}', fitness={self._fitness:.2f}, scaled_fitness={self._scaled_fitness:.2f})"
 
     def __eq__(self, other) -> bool:
         return self._genotype == other.genotype

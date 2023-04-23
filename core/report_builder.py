@@ -38,9 +38,9 @@ class ReportBuilder:
                 str(f) for f in os.listdir(self._report_dir)
                 if os.path.isfile(os.path.join(self._report_dir, f))
             ]
-
+        current_time = datetime.datetime.now().strftime("%d-%m-%yT%H.%M.%S")
         self._writer = xlsx.XLSX(
-            str(self._writing_dir / f"report_{datetime.datetime.now().isoformat()}.xlsx"),
+            str(self._writing_dir / f"report_{current_time}.xlsx"),
             "N=100"
         )
 
@@ -64,7 +64,7 @@ class ReportBuilder:
 
         stats_keys = NOISE_STATS_KEYS if stats_mode == "noise" else FULL_STATS_KEYS
         total_stats_keys = NOISE_TOTAL_STATS_KEYS if stats_mode == "noise" else FULL_TOTAL_STATS_KEYS
-        selection_fns = list(itertools.product(selection_fns["beta"], selection_fns["modified"]))
+        selection_fns = list(itertools.product(selection_fns["a"], selection_fns["b"]))
 
         self._writer.sheet(f"N={n}")
 
@@ -75,8 +75,8 @@ class ReportBuilder:
 
         self._writer.col(
             ['Epochs', 'Selection \\ Criteria',
-             *[f"linear{' modified' if modified else ''}, beta={beta}"
-               for beta, modified in selection_fns]],
+             *[f"linear, a={a} b={b}"
+               for a, b in selection_fns]],
             style="bold_bg"
         )
 
@@ -85,9 +85,9 @@ class ReportBuilder:
             for stat in stats_keys:
                 lst = [f"epoch {epoch + 1}" if epoch_to_write else '', stat]
 
-                for beta, modified in selection_fns:
+                for a, b in selection_fns:
                     try:
-                        lst.append(data[epoch][f"{beta}${modified}"][stat])
+                        lst.append(data[epoch][f"{a}${b}"][stat])
                     except KeyError:
                         lst.append("NaN")
 
@@ -100,9 +100,9 @@ class ReportBuilder:
         for stat in total_stats_keys:
             lst = [f"Total stats" if write_title else '', stat]
 
-            for beta, modified in selection_fns:
+            for a, b in selection_fns:
                 try:
-                    lst.append(total_data[f"{beta}${modified}"][stat])
+                    lst.append(total_data[f"{a}${b}"][stat])
                 except KeyError:
                     lst.append("")
 

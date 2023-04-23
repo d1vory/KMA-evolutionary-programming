@@ -48,9 +48,9 @@ class Evaluator:
         for selection_fn in self._config.selection_fns:
             print(
                 f"Fitting GA: epoch={epoch}, n={n}, fitness={fitness_fn.name}, "
-                f"linear(beta={selection_fn.beta}, modified={selection_fn.modified})"
+                f"linearScaling(A={selection_fn.a}, B={selection_fn.b})"
             )
-            selection_fn_name = f"{selection_fn.beta}${selection_fn.modified}"
+            selection_fn_name = f"{selection_fn.a}${selection_fn.b}"
 
             graphics_dir = self._graphics_dir / fitness_fn.name / str(n) / selection_fn_name / str(epoch)
             graphics_dir.mkdir(parents=True, exist_ok=True)
@@ -58,11 +58,12 @@ class Evaluator:
             algo = genetic_algorithm.GeneticAlgorithm(
                 base_population=population,
                 fitness_function=fn,
-                scale_function=scale_functions.LinearRank(selection_fn.beta, n),
+                scale_function=scale_functions.LinearScaling(selection_fn.a, selection_fn.b),
                 selection_algo=selection_algorithms.my_sus,
                 optimal=fitness_fn.optimal,
                 stats_mode=stats_mode,
-                modified_selection_algo=selection_fn.modified,
+                use_crossingover=fitness_fn.use_crossingover,
+                modified_selection_algo=False,
                 max_iteration=max_iteration,
                 mutation_rate=fitness_fn.mutation_rate,
                 early_stopping=fitness_fn.early_stopping,
@@ -96,8 +97,8 @@ class Evaluator:
             "epochs": epochs,
             "max_iteration": max_iteration,
             "selection_fns": {
-                "beta": list({fn.beta for fn in self._config.selection_fns}),
-                "modified": list({fn.modified for fn in self._config.selection_fns})
+                "a": list({fn.a for fn in self._config.selection_fns}),
+                "b": list({fn.b for fn in self._config.selection_fns})
             },
             "length": length,
             "fitness_fn": fitness_fn.name,
@@ -106,7 +107,7 @@ class Evaluator:
             "data": report_data,
             "total_data": utils.aggregate_runs_data(report_data, stats_mode, fitness_fn.optimal, fn)
         }
-        current_time = datetime.datetime.now().strftime("%d.%m.%yT%H:%M:%S")
+        current_time = datetime.datetime.now().strftime("%d-%m-%yT%H.%M.%S")
         name = f"data${current_time}${n}${fitness_fn.name}${epochs}"
         self._write_report(name, report_meta)
 

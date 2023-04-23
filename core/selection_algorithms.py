@@ -11,16 +11,17 @@ def rws(
     keep = []
     for p in pointers:
         i = 0
-        sum_ = population.individuals[i].rank
+        # use individual's coeff of
+        sum_ = population.individuals[i].scaled_fitness
         while sum_ < p:
             i += 1
-            sum_ += population.individuals[i].rank
+            sum_ += population.individuals[i].scaled_fitness
         keep.append(copy.copy(population.individuals[i]))
     return models.Population(keep)
 
 
 def my_sus(population: models.Population) -> models.Population:
-    f = population.rank  # sum of all probabilities = 1
+    f = population.scaled_fitness  # sum of all probabilities = 1
     n = len(population)
     p = f / n
     start = random.uniform(0, p)
@@ -32,11 +33,11 @@ def sus(population: models.Population) -> models.Population:
     total_fitness = 0
     fitness_scale = []
     for index, individual in enumerate(population.individuals):
-        total_fitness += individual.rank
+        total_fitness += individual.scaled_fitness
         if index == 0:
-            fitness_scale.append(individual.rank)
+            fitness_scale.append(individual.scaled_fitness)
         else:
-            fitness_scale.append(individual.rank + fitness_scale[index - 1])
+            fitness_scale.append(individual.scaled_fitness + fitness_scale[index - 1])
 
     # Store the selected parents
     mating_pool = []

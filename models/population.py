@@ -13,7 +13,7 @@ class Population:
         self._avg_score: typing.Union[float, None] = None
         self._std_score: typing.Union[float, None] = None
         self._fitness_arr: typing.Union[typing.List[float], None] = None
-        self._rank: typing.Union[float, None] = None
+        self._scaled_fitness = None
 
     @property
     def individuals(self) -> typing.List[models.Individual]:
@@ -48,11 +48,10 @@ class Population:
         return self._fitness_arr
 
     @property
-    def rank(self) -> float:
-        if self._rank is None:
-            self._rank = sum([individual.rank for individual in self._individuals])
-
-        return self._rank
+    def scaled_fitness(self) -> float:
+        if self._scaled_fitness is None:
+            self._scaled_fitness = sum([individual.scaled_fitness for individual in self._individuals])
+        return self._scaled_fitness
 
     def sort(self):
         self._individuals: typing.List[models.Individual] = sorted(
@@ -83,12 +82,18 @@ class Population:
             [individual.genotype for individual in self._individuals]
         )) == 1
 
+    def homogenity(self, threshold=0.99) -> bool:
+        unique_individuals = len(set([individual.genotype for individual in self._individuals]))
+        unique_to_all_ratio = unique_individuals / len(self._individuals)
+        homogenity_score = 1.0 - unique_to_all_ratio
+        return homogenity_score >= threshold
+
     def invalidate(self):
         self._score = None
         self._avg_score = None
         self._std_score = None
         self._fitness_arr = None
-        self._rank = None
+        self._scaled_fitness = None
 
     def __repr__(self):
         return f"Population(individuals={len(self._individuals)}, total_score={self.score})"
