@@ -166,10 +166,10 @@ class FX(FitnessFunction):
         return self._handler(arg, reverse=True)
 
     def encode(self, arg):
-        return utils.encode(arg, self._a, self._b, self._m)
+        return utils.encode_binary(arg, self._a, self._b, self._m)
 
     def decode(self, arg):
-        return utils.decode(arg, self._a, self._b, self._m)
+        return utils.decode_binary(arg, self._a, self._b, self._m)
 
     def _f(self, arg):
         return self._handler(self.decode(arg))
@@ -187,10 +187,10 @@ class FECX(FitnessFunction):
         return f"f_e^({self._c}*x), {self._a}<=x<={self._b}, m={self._m}"
 
     def encode(self, arg):
-        return utils.encode(arg, self._a, self._b, self._m)
+        return utils.encode_binary(arg, self._a, self._b, self._m)
 
     def decode(self, arg):
-        return utils.decode(arg, self._a, self._b, self._m)
+        return utils.decode_binary(arg, self._a, self._b, self._m)
 
     def is_arg_real(self):
         return True

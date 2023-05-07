@@ -36,7 +36,7 @@ class Evaluator:
             n=n,
             length=length,
             optimal=fitness_fn.optimal,
-            generate_optimal=optimal,
+            generate_optimal=True,
             fitness_fn=fn,
             low_range=fitness_fn.values.get("low"),
             high_range=fitness_fn.values.get("high"),
@@ -52,8 +52,17 @@ class Evaluator:
             )
             selection_fn_name = f"a={selection_fn.a}$b={selection_fn.b}"
 
-            graphics_dir = self._graphics_dir / fitness_fn.name / str(n) / selection_fn_name / str(epoch)
-            graphics_dir.mkdir(parents=True, exist_ok=True)
+            if epoch < 5:
+                graphics_dir = self._graphics_dir / fitness_fn.name / str(n) / selection_fn_name / str(epoch)
+                graphics_dir.mkdir(parents=True, exist_ok=True)
+                graphics_dir_str = str(graphics_dir)
+            else:
+                graphics_dir_str = ''
+
+            if fitness_fn.mutation_rate:
+                mutation_rate = fitness_fn.mutation_rate / (n / 100)
+            else:
+                mutation_rate = fitness_fn.mutation_rate
 
             algo = genetic_algorithm.GeneticAlgorithm(
                 base_population=population,
@@ -65,11 +74,11 @@ class Evaluator:
                 use_crossingover=fitness_fn.use_crossingover,
                 modified_selection_algo=False,
                 max_iteration=max_iteration,
-                mutation_rate=fitness_fn.mutation_rate,
+                mutation_rate=mutation_rate,
                 early_stopping=fitness_fn.early_stopping,
                 draw_step=None,
                 draw_total_steps=False,
-                graphics_dir=str(graphics_dir)
+                graphics_dir=graphics_dir_str
             )
             algo.fit()
 
@@ -87,9 +96,11 @@ class Evaluator:
         report_data = []
 
         with multiprocessing.Pool(self._cpu_count) as p:
-            for result in p.imap(functools.partial(
-                    self.run_epoch, n=n, max_iteration=max_iteration, fitness_fn=fitness_fn
-            ), range(epochs)):
+            for result in p.imap(
+                functools.partial(
+                        self.run_epoch, n=n, max_iteration=max_iteration, fitness_fn=fitness_fn
+                ), range(epochs)
+            ):
                 report_data.append(result)
 
         report_meta = {

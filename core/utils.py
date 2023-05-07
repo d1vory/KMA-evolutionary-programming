@@ -132,6 +132,19 @@ def aggregate_runs_data(
             if stats_mode == "noise":
                 total_data[selection_fn]["Num0"].append(epoch_data[selection_fn]["ConvTo"] == 0)
                 total_data[selection_fn]["Num1"].append(epoch_data[selection_fn]["ConvTo"] == 1)
+
+                # rr
+                total_data[selection_fn]["RR_min"].append(epoch_data[selection_fn]["RR_min"])
+                total_data[selection_fn]["NI_RR_min"].append(epoch_data[selection_fn]["NI_RR_min"])
+                total_data[selection_fn]["RR_max"].append(epoch_data[selection_fn]["RR_max"])
+                total_data[selection_fn]["NI_RR_max"].append(epoch_data[selection_fn]["NI_RR_max"])
+                total_data[selection_fn]["RR_avg"].append(epoch_data[selection_fn]["RR_avg"])
+                # loss of diversity
+                total_data[selection_fn]["Teta_min"].append(epoch_data[selection_fn]["Teta_min"])
+                total_data[selection_fn]["NI_Teta_min"].append(epoch_data[selection_fn]["NI_Teta_min"])
+                total_data[selection_fn]["Teta_max"].append(epoch_data[selection_fn]["Teta_max"])
+                total_data[selection_fn]["NI_Teta_max"].append(epoch_data[selection_fn]["NI_Teta_max"])
+                total_data[selection_fn]["Teta_avg"].append(epoch_data[selection_fn]["Teta_avg"])
             else:
                 # intensity
                 total_data[selection_fn]["I_min"].append(epoch_data[selection_fn]["I_min"])
@@ -142,7 +155,7 @@ def aggregate_runs_data(
                 # growth rate
                 total_data[selection_fn]["GR_avg"].append(epoch_data[selection_fn]["GR_avg"])
                 total_data[selection_fn]["GR_early"].append(epoch_data[selection_fn]["GR_early"])
-                total_data[selection_fn]["GR_late"].append(epoch_data[selection_fn]["GR_late"])
+                total_data[selection_fn]["GR_late"].append(epoch_data[selection_fn].get("GR_late", 1.03))
                 # rr
                 total_data[selection_fn]["RR_min"].append(epoch_data[selection_fn]["RR_min"])
                 total_data[selection_fn]["NI_RR_min"].append(epoch_data[selection_fn]["NI_RR_min"])

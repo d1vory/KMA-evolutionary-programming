@@ -21,8 +21,12 @@ FULL_TOTAL_STATS_KEYS = ['Suc', 'Min_NI', 'Max_NI', 'Avg_NI', 'Sigma_NI', 'Min_I
                          'Sigma_Teta_min', 'Sigma_Teta_avg', 'Min_s_min', 'NI_s_min', 'Max_s_max', 'NI_s_max',
                          'Avg_s_min', 'Avg_s_max', 'Avg_s_avg']
 
-NOISE_STATS_KEYS = ['NI', 'ConvTo']
-NOISE_TOTAL_STATS_KEYS = ["Suc", "Num0", "Num1", "Min_NI", "Max_NI", "Avg_NI", "Sigma_NI"]
+NOISE_STATS_KEYS = ['NI', 'ConvTo', 'RR_min', 'NI_RR_min', 'RR_max', 'NI_RR_max', 'Teta_min', 'NI_Teta_min', 'Teta_max', 'NI_Teta_max']
+NOISE_TOTAL_STATS_KEYS = ["Suc", "Num0", "Num1", "Min_NI", "Max_NI", "Avg_NI", "Sigma_NI", 'Min_RR_min', 'NI_RR_min',
+                         'Max_RR_max', 'NI_RR_max', 'Avg_RR_min', 'Avg_RR_max', 'Avg_RR_avg', 'Sigma_RR_max',
+                         'Sigma_RR_min', 'Sigma_RR_avg', 'Min_Teta_min', 'NI_Teta_min', 'Max_Teta_max',
+                         'NI_Teta_max', 'Avg_Teta_min', 'Avg_Teta_max', 'Avg_Teta_avg', 'Sigma_Teta_max',
+                         'Sigma_Teta_min', 'Sigma_Teta_avg',]
 
 
 class ReportBuilder:

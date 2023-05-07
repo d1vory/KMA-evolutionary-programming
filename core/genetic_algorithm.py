@@ -103,13 +103,159 @@ class GeneticAlgorithm:
     def _update_noise_stats(self):
         self._stats["NI"] = self._convergence_iteration or -1
         self._stats["ConvTo"] = 0 if self._population.individuals[0].is_zero() else 1
+        self._stats["RR_avg"] = np.mean(self._reproduction_coeffs)
+        self._stats["Teta_avg"] = np.mean(self._loss_of_diversity_coeffs)
+    #
+    # def _update_stats(self):
+    #     if self._stats_mode == "noise":
+    #         return
+    #
+    #     previous_population: models.Population = self._populations[-2]
+    #     current_population: models.Population = self._populations[-1]
+    #
+    #     selection_difference = current_population.avg_score - previous_population.avg_score
+    #     self._selection_differences.append(selection_difference)
+    #
+    #     if selection_difference < self._stats.get("s_min", math.inf):
+    #         self._stats["s_min"] = selection_difference
+    #         self._stats["NI_s_min"] = self._iteration
+    #     if selection_difference > self._stats.get("s_max", -math.inf):
+    #         self._stats["s_max"] = selection_difference
+    #         self._stats["NI_s_max"] = self._iteration
+    #
+    #     if previous_population.std_score == 0:
+    #         selection_intensity = 0
+    #     else:
+    #         selection_intensity = selection_difference / previous_population.std_score
+    #     self._selection_intensities.append(selection_intensity)
+    #
+    #     if selection_intensity < self._stats.get("I_min", math.inf):
+    #         self._stats["I_min"] = selection_intensity
+    #         self._stats["NI_I_min"] = self._iteration
+    #     if selection_intensity > self._stats.get("I_max", -math.inf):
+    #         self._stats["I_max"] = selection_intensity
+    #         self._stats["NI_I_max"] = self._iteration
+    #
+    #     in_parent_pool = 0
+    #     best = current_population.get_fittest(1)[0]
+    #     num_of_best = 0
+    #     num_of_optimal = 0
+    #     best_in_previous = previous_population.get_fittest(1)[0]
+    #     num_of_best_in_previous = 0
+    #
+    #     for individual in previous_population.individuals[::-1]:
+    #         if individual == best_in_previous:
+    #             num_of_best_in_previous += 1
+    #         if individual in current_population:
+    #             in_parent_pool += 1
+    #
+    #     if best.genotype == self._optimal:
+    #         for individual in current_population.individuals[::-1]:
+    #             if individual == best:
+    #                 num_of_best += 1
+    #                 num_of_optimal += 1
+    #                 continue
+    #             break
+    #     else:
+    #         for individual in current_population.individuals[::-1]:
+    #             if individual == best:
+    #                 num_of_best += 1
+    #                 continue
+    #             elif individual.genotype == self._optimal:
+    #                 num_of_optimal += 1
+    #                 continue
+    #             break
+    #
+    #     growth_rate = 0
+    #     if num_of_best >= num_of_best_in_previous:
+    #         growth_rate = num_of_best / num_of_best_in_previous
+    #     self._growth_rates.append(growth_rate)
+    #
+    #     if self._iteration == 1:
+    #         self._stats["GR_early"] = growth_rate
+    #     if "GR_late" not in self._stats and num_of_best >= self._population_len / 2:
+    #         self._stats["GR_late"] = growth_rate
+    #         self._stats["NI_GR_late"] = self._iteration
+    #
+    #     reproduction = in_parent_pool / self._population_len
+    #     loss_of_diversity = 1 - reproduction
+    #
+    #     self._reproduction_coeffs.append(reproduction)
+    #     self._loss_of_diversity_coeffs.append(loss_of_diversity)
+    #
+    #     if reproduction < self._stats.get("RR_min", math.inf):
+    #         self._stats["RR_min"] = reproduction
+    #         self._stats["NI_RR_min"] = self._iteration
+    #     if reproduction > self._stats.get("RR_max", -math.inf):
+    #         self._stats["RR_max"] = reproduction
+    #         self._stats["NI_RR_max"] = self._iteration
+    #     if loss_of_diversity < self._stats.get("Teta_min", math.inf):
+    #         self._stats["Teta_min"] = loss_of_diversity
+    #         self._stats["NI_Teta_min"] = self._iteration
+    #     if loss_of_diversity > self._stats.get("Teta_max", -math.inf):
+    #         self._stats["Teta_max"] = loss_of_diversity
+    #         self._stats["NI_Teta_max"] = self._iteration
+    #
+    #     # graphics data
+    #     self._graphics_data["avg_score"].append(current_population.avg_score)
+    #     self._graphics_data["best_score"].append(current_population.best_score)
+    #     self._graphics_data["intensity"].append(selection_intensity)
+    #     self._graphics_data["difference"].append(selection_difference)
+    #     self._graphics_data["std_score"].append(current_population.std_score)
+    #     self._graphics_data["best_part"].append(num_of_optimal / self._population_len)
+    #     self._graphics_data["growth_rate"].append(growth_rate)
+    #     self._graphics_data["reproduction"].append(reproduction)
+    #     self._graphics_data["loss_of_diversity"].append(loss_of_diversity)
+    #
+    #
 
     def _update_stats(self):
-        if self._stats_mode == "noise":
-            return
-
         previous_population: models.Population = self._populations[-2]
         current_population: models.Population = self._populations[-1]
+
+
+        in_parent_pool = 0
+        best = current_population.get_fittest(1)[0]
+        num_of_best = 0
+        best_in_previous = previous_population.get_fittest(1)[0]
+        num_of_best_in_previous = 0
+
+        for individual in previous_population.individuals[::-1]:
+            if individual == best_in_previous:
+                num_of_best_in_previous += 1
+            if individual in current_population:
+                in_parent_pool += 1
+
+        for individual in current_population.individuals[::-1]:
+            if individual == best:
+                num_of_best += 1
+                continue
+            break
+
+        reproduction = in_parent_pool / self._population_len
+        loss_of_diversity = 1 - reproduction
+
+        self._reproduction_coeffs.append(reproduction)
+        self._loss_of_diversity_coeffs.append(loss_of_diversity)
+
+        if reproduction < self._stats.get("RR_min", math.inf):
+            self._stats["RR_min"] = reproduction
+            self._stats["NI_RR_min"] = self._iteration
+        if reproduction > self._stats.get("RR_max", -math.inf):
+            self._stats["RR_max"] = reproduction
+            self._stats["NI_RR_max"] = self._iteration
+        if loss_of_diversity < self._stats.get("Teta_min", math.inf):
+            self._stats["Teta_min"] = loss_of_diversity
+            self._stats["NI_Teta_min"] = self._iteration
+        if loss_of_diversity > self._stats.get("Teta_max", -math.inf):
+            self._stats["Teta_max"] = loss_of_diversity
+            self._stats["NI_Teta_max"] = self._iteration
+
+        self._graphics_data["reproduction"].append(reproduction)
+        self._graphics_data["loss_of_diversity"].append(loss_of_diversity)
+
+        if self._stats_mode == "noise":
+            return
 
         selection_difference = current_population.avg_score - previous_population.avg_score
         self._selection_differences.append(selection_difference)
@@ -134,23 +280,7 @@ class GeneticAlgorithm:
             self._stats["I_max"] = selection_intensity
             self._stats["NI_I_max"] = self._iteration
 
-        in_parent_pool = 0
-        best = current_population.get_fittest(1)[0]
-        num_of_best = 0
-        best_in_previous = previous_population.get_fittest(1)[0]
-        num_of_best_in_previous = 0
 
-        for individual in previous_population.individuals[::-1]:
-            if individual == best_in_previous:
-                num_of_best_in_previous += 1
-            if individual in current_population:
-                in_parent_pool += 1
-
-        for individual in current_population.individuals[::-1]:
-            if individual == best:
-                num_of_best += 1
-                continue
-            break
 
         growth_rate = 0
         if num_of_best >= num_of_best_in_previous:
@@ -163,24 +293,7 @@ class GeneticAlgorithm:
             self._stats["GR_late"] = growth_rate
             self._stats["NI_GR_late"] = self._iteration
 
-        reproduction = in_parent_pool / self._population_len
-        loss_of_diversity = 1 - reproduction
 
-        self._reproduction_coeffs.append(reproduction)
-        self._loss_of_diversity_coeffs.append(loss_of_diversity)
-
-        if reproduction < self._stats.get("RR_min", math.inf):
-            self._stats["RR_min"] = reproduction
-            self._stats["NI_RR_min"] = self._iteration
-        if reproduction > self._stats.get("RR_max", -math.inf):
-            self._stats["RR_max"] = reproduction
-            self._stats["NI_RR_max"] = self._iteration
-        if loss_of_diversity < self._stats.get("Teta_min", math.inf):
-            self._stats["Teta_min"] = loss_of_diversity
-            self._stats["NI_Teta_min"] = self._iteration
-        if loss_of_diversity > self._stats.get("Teta_max", -math.inf):
-            self._stats["Teta_max"] = loss_of_diversity
-            self._stats["NI_Teta_max"] = self._iteration
 
         # graphics data
         self._graphics_data["avg_score"].append(current_population.avg_score)
@@ -190,8 +303,7 @@ class GeneticAlgorithm:
         self._graphics_data["std_score"].append(current_population.std_score)
         self._graphics_data["best_part"].append(num_of_best / self._population_len)
         self._graphics_data["growth_rate"].append(growth_rate)
-        self._graphics_data["reproduction"].append(reproduction)
-        self._graphics_data["loss_of_diversity"].append(loss_of_diversity)
+
 
     def _update_final_stats(self):
         if self._stats_mode == "noise":
@@ -329,6 +441,9 @@ class GeneticAlgorithm:
 
             self._populations.append(self._population)
             self._total_scores.append(total_score)
+
+            if len(self._populations) > 10:
+                self._populations.pop(0)
 
             if self._iteration > 0:
                 self._update_stats()

@@ -45,3 +45,6 @@ class Individual:
 
     def __len__(self) -> int:
         return len(self._genotype)
+
+    def __hash__(self):
+        return hash(self._genotype)

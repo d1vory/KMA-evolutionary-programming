@@ -82,9 +82,12 @@ class Population:
         return False
 
     def convergence(self) -> bool:
-        return len(set(
-            [individual.genotype for individual in self._individuals]
-        )) == 1
+        return len(set(self._individuals)) == 1
+        # kek = sorted([individual.genotype for individual in self._individuals])
+        # setted = set(
+        #     kek
+        # )
+        # return len(setted) == 1
 
     def homogenity(self, threshold=0.99) -> bool:
         unique_individuals = len(set([individual.genotype for individual in self._individuals]))
